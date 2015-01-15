@@ -461,14 +461,14 @@ void FeedLine(){
 
 }
 void SBusParser(){
-  /*while(RCSigPort.available() > 25){
+  while(RCSigPort.available() > 25){
     RCSigPort.read();
-  }*/
+  }
   //Serial<<RCSigPort.available()<<"\r\n";
   while(RCSigPort.available() > 0){
-    /*if (millis() - frameTime > 8){
+    if (millis() - frameTime > 8){
       readState = 0;
-    }*/
+    }
     inByte = RCSigPort.read();
     frameTime = millis();
     switch (readState){
@@ -497,7 +497,7 @@ void SBusParser(){
           rawRCVal[AUX1] = (sBusData[7]>>7|sBusData[8]<<1|sBusData[9]<<9) & 0x07FF;
           rawRCVal[AUX2] = (sBusData[9]>>2|sBusData[10]<<6) & 0x07FF;
           rawRCVal[AUX3] = (sBusData[10]>>5|sBusData[11]<<3) & 0x07FF;
-          if (sBusData[23] & (1<<2)) {
+          if (sBusData[23] & (1<<3)) {
             failSafe = true;
           }
  
@@ -541,7 +541,7 @@ void DSMXParser(){
 void DetectRC(){
 
   readState = 0;
-  digitalWrite(RC_MUX_SEL,HIGH);
+  RC_SSHigh();
   SBus();
   readState = 0;
   if (detected == true){
@@ -550,7 +550,7 @@ void DetectRC(){
     return;
   }
   readState = 0;
-  digitalWrite(RC_MUX_SEL,LOW);
+  RC_SSLow();
   Spektrum();
   readState = 0;
   if (detected == true){

@@ -166,7 +166,10 @@ enum CalibrationFlags {
 #define FlashSSHigh() PORTL |= 1<<4
 #define FlashSSLow() PORTL &= ~(1<<4)
 
-#define RC_MUX_SEL 44
+#define RC_SS_Output() DDRH |= 1<<7 
+#define RC_SSHigh() PORTH |= 1<<7 
+#define RC_SSLow() PORTH &= ~(1<<7)
+
 //control defines 
 #define HH_ON 0
 #define HH_OFF 1
@@ -787,6 +790,8 @@ float baroRate,baroDT,prevBaro,pingRate,pingDT,prevPing;
 float_u baroVel,baroAlt,velZMeas,pingVel;
 int16_t lagAmount,tempX,tempY;
 
+uint32_t loopCount_;
+
 //constructors //fix the dts
 openIMU imu(&radianGyroX,&radianGyroY,&radianGyroZ,&accToFilterX,&accToFilterY,&accToFilterZ,&filtAccX.val,&filtAccY.val,&filtAccZ.val,
 &magToFiltX,&magToFiltY,&magToFiltZ,&gpsX.val,&gpsY.val,&zMeas.val,&velN.val,&velE.val,&velZMeas.val,&imuDT);
@@ -836,10 +841,13 @@ void setup(){
   pinMode(GREEN,OUTPUT);
   //digitalWrite(RED,HIGH);
   pinMode(13,OUTPUT);
-  pinMode(RC_MUX_SEL,OUTPUT);
+  RC_SS_Output();
   MotorInit();
   Port0.begin(115200);
   Port2.begin(115200);
+  Port2.write(0x0D);
+  delay(250);
+  Port2.print("B");
   AssignPointerArray();
   //----------------------------
   //ROMFlagsCheck();
@@ -955,9 +963,7 @@ void setup(){
 
 
 void loop(){
-
   _400HzTask();
-
   if ( micros() - imuTimer >= 13333){//75Hz
     imuDT = (micros() - imuTimer ) * 0.000001;
     imuTimer = micros();
@@ -996,7 +1002,6 @@ void loop(){
     tuningTrasnmitOK = true;
   }
   _400HzTask();
-
   if (handShake == true){
     Radio();
 
@@ -1019,9 +1024,9 @@ void loop(){
 
   }
   _400HzTask();
-/* if (GPSDetected == true){
-    gps.Monitor();
-  }*/
+  /* if (GPSDetected == true){
+   gps.Monitor();
+   }*/
   if (gps.newData == true){
 
     gps.newData = false;
@@ -1123,15 +1128,19 @@ void loop(){
       digitalWrite(RED,HIGH);
     }
     while(1){
-
       digitalWrite(YELLOW,HIGH);
-      digitalWrite(GREEN,LOW);
+      if (RCFailSafeCounter >= 200 ){
+        digitalWrite(GREEN,LOW);
+      }
       delay(500);
       digitalWrite(YELLOW,LOW);
-      digitalWrite(GREEN,HIGH);
+      if (RCFailSafeCounter >= 200 ){
+        digitalWrite(GREEN,HIGH);
+      }
       delay(500);
     }
   }
+ 
   _400HzTask();
   watchDogFailSafeCounter = 0;
   //RCFailSafeCounter = 0;
@@ -1463,6 +1472,11 @@ void LoiterCalculations(){
   tiltAngleX.val *= -1.0;
   LoiterYVelocity.calculate();
 }
+
+
+
+
+
 
 
 
