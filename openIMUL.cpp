@@ -343,7 +343,11 @@ void openIMU::CorrectGPS(void){
   //Serial<<"*******\r\n";
 
 }
-
+void openIMU::SetBias(void){
+  accelBiasX.val = R11*inertialX.val + R12*inertialY.val + R13*inertialZ.val;
+  accelBiasY.val = R21*inertialX.val + R22*inertialY.val + R23*inertialZ.val;
+  accelBiasZ.val = R31*inertialX.val + R32*inertialY.val + R33*inertialZ.val;
+}
 void openIMU::CorrectAlt(void){
   zPosError.val = ZEstHist[lagIndex_z] + *ZPosBaro;
   zVelError.val = ZVelHist[lagIndex_z] + *ZVelBaro;

@@ -169,6 +169,8 @@ void MotorHandler(){
     }
     if (RCValue[RUDD] < 1300){
       motorState = TO;
+      imu.GetInertial();
+      imu.SetBias();
       PitchAngle.reset();
       RollAngle.reset();
       YawAngle.reset();
@@ -217,6 +219,7 @@ void MotorHandler(){
     if (flightMode == RTB){
       motorState = HOLD;
     }
+
     if (flightMode == RATE || flightMode == ATT){
       if (RCValue[THRO] > 1150 && RCValue[THRO] < 1350){
         motorState = FLIGHT;
@@ -321,6 +324,7 @@ void MotorHandler(){
 
 
 }
+
 
 
 

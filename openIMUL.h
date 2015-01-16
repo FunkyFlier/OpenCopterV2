@@ -52,6 +52,7 @@ public:
   void GetInertial(void);
   void Predict(void);
   void CorrectGPS(void);
+  void SetBias(void);
   //void CorrectBaro(void);
   void CorrectAlt(void);
   void GenerateRotationMatrix(void);
