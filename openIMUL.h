@@ -15,7 +15,7 @@
 #define ToRad(x) ((x)*0.01745329252)  // *pi/180
 #define ToDeg(x) ((x)*57.2957795131)  // *180/pi
 
-#define FEEDBACK_LIMIT 0.98
+//#define FEEDBACK_LIMIT 0.98
 /*#define kpAcc 1.00
  #define kiAcc 0.0
  #define kpMag 1.00
@@ -25,8 +25,8 @@
  #define kiAcc 40.0
  #define kpMag 400.0
  #define kiMag 40.0*/
-#define LAG_SIZE 60
-#define LAG_SIZE_BARO 25
+#define LAG_SIZE 51
+#define LAG_SIZE_BARO 26
 //#define DECLINATION ToRad(3.3)
 //#define COS_DEC cos(DECLINATION)
 //#define SIN_DEC sin(DECLINATION) 
@@ -48,12 +48,9 @@ public:
   void InitialQuat(void);
   void GetGravOffset(void);
   void UpdateLagIndex(void);  
-  void IntegrateGyro(void);
   void GetInertial(void);
   void Predict(void);
   void CorrectGPS(void);
-  void SetBias(void);
-  //void CorrectBaro(void);
   void CorrectAlt(void);
   void GenerateRotationMatrix(void);
 
@@ -63,7 +60,7 @@ public:
   float_u velX,velY,velZ,velZUp;
   float_u accelBiasX,accelBiasY,accelBiasZ;
   float accelBiasXEF,accelBiasYEF,accelBiasZEF;
-  float_u inertialX,inertialY,inertialZ;
+  float_u inertialX,inertialY,inertialZ,inertialZGrav;
   float_u inertialXOffSet,inertialYOffSet,inertialZOffSet;
   float_u inertialXBiased,inertialYBiased,inertialZBiased;
   uint8_t feedBack;
@@ -80,16 +77,20 @@ public:
   float kiAcc;
   float kpMag;
   float kiMag;
+  float FEEDBACK_LIMIT;
   boolean skipFeedBack;
   //float FEEDBACK_LIMIT;
   float DECLINATION,COS_DEC,SIN_DEC;
   float kPosGPS,kVelGPS,kAccGPS,kPosBaro,kVelBaro,kAccBaro;
   float R11,R12,R13,R21,R22,R23,R31,R32,R33;
-  float_u lagZVel;
+  float inertialSumX,inertialSumY,inertialSumZ,inertialAvgX,inertialAvgY,inertialAvgZ;
+  float_u lagEstForDebugVel,lagEstForDebugPos;
   uint8_t lagAmount;
+  //uint8_t magFlag;
+  float_u biasedX,biasedY,biasedZ;
 private:
 
-  float biasedX,biasedY,biasedZ;
+  
   float *gx;
   float *gy;
   float *gz;
@@ -111,13 +112,13 @@ private:
   float integralFBX,integralFBY,integralFBZ;
 
   float kiDTAcc,kiDTMag,dtby2;
-  float bx,by,bz,bx_,bz_,wx,wy,wz,vx,vy,vz;
+  float bx,by,bz,wx,wy,wz,vx,vy,vz;
   
   float hx,hy,hz,exm,eym,ezm,exa,eya,eza;
   float_u radPitch,radRoll,radYaw;
-  float xOrtho[3],yOrtho[3],zOrtho[3];
-  float xNorm[3],yNorm[3],zNorm[3];
-  float normScale,rotError,rotError2;
+  //float xOrtho[3],yOrtho[3],zOrtho[3];
+  //float xNorm[3],yNorm[3],zNorm[3];
+  //float normScale,rotError,rotError2;
 };
 
 

@@ -2,27 +2,27 @@
 
 
 /*void SetFailSafeFlags(){//remove - for debugging purposes only
-  if (RCValue[AUX2] > 1800){
-    gpsFailSafe = false;
-    drFlag = false;
-    imu.XEst.val = rawX.val;
-    imu.YEst.val = rawY.val;
-    drPosX.val = rawX.val;
-    drPosY.val = rawY.val;
-    imu.velX.val = 0;
-    imu.velY.val = 0;
-    drVelX.val = 0;
-    drVelY.val = 0;
-
-    imu.ZEst.val = 0;
-
-    imu.velX.val = 0;
-    imu.velY.val = 0;
-    imu.velZ.val = 0;
-  }
-
-
-}*/
+ if (RCValue[AUX2] > 1800){
+ gpsFailSafe = false;
+ drFlag = false;
+ imu.XEst.val = rawX.val;
+ imu.YEst.val = rawY.val;
+ drPosX.val = rawX.val;
+ drPosY.val = rawY.val;
+ imu.velX.val = 0;
+ imu.velY.val = 0;
+ drVelX.val = 0;
+ drVelY.val = 0;
+ 
+ imu.ZEst.val = 0;
+ 
+ imu.velX.val = 0;
+ imu.velY.val = 0;
+ imu.velZ.val = 0;
+ }
+ 
+ 
+ }*/
 void GetSwitchPositions(){
   //value from gear switch
   if (RCValue[GEAR] < 1250){
@@ -210,6 +210,27 @@ void ProcessChannels(){
       enterState = true;
     }
 
+    return;
+
+  }
+
+  if (RCValue[AUX3] > 1750){
+    flightMode = RTB;
+    MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
+    MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
+    MapVar(&RCValue[RUDD],&yawInput,1000,2000,-300,300);
+    if (rollSetPointTX.val < 1 && rollSetPointTX.val > -1){
+      rollSetPointTX.val = 0;
+    }
+    if (pitchSetPointTX.val < 1 && pitchSetPointTX.val > -1){
+      pitchSetPointTX.val = 0;
+    }
+    if (yawInput < 5 && yawInput > -5){
+      yawInput = 0;
+    }
+    if (flightMode != previousFlightMode){
+      enterState = true;
+    }
     return;
 
   }
@@ -500,7 +521,7 @@ void SBusParser(){
           if (sBusData[23] & (1<<3)) {
             failSafe = true;
           }
- 
+
         }
       }
       break;
@@ -680,6 +701,7 @@ void Spektrum(){
   rcType = DSMX;
   detected = true;
 }
+
 
 
 

@@ -76,13 +76,13 @@ void LoiterSM(){
     }
     
 
-    if (imu.ZEst.val >= CEILING && velSetPointZ.val > 0){
+    if (imu.ZEstUp.val >= CEILING && velSetPointZ.val > 0){
       zTarget.val = CEILING;
       AltHoldPosition.calculate();
       AltHoldVelocity.calculate();
       break;
     }
-    if (imu.ZEst.val <= FLOOR && velSetPointZ.val < 0){
+    if (imu.ZEstUp.val <= FLOOR && velSetPointZ.val < 0){
       zTarget.val = FLOOR;
       AltHoldPosition.calculate();
       AltHoldVelocity.calculate();
@@ -95,6 +95,9 @@ void LoiterSM(){
 
   case LAND:
     AltHoldVelocity.calculate();
+    if (throttleAdjustment.val > 0){
+      throttleAdjustment.val = 0;
+    }
     if (RCValue[THRO] > 1200 && motorState == LANDING){
       ZLoiterState = LOITERING;
       motorState = FLIGHT;

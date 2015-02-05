@@ -102,9 +102,9 @@ void AssignPointerArray(){
   floatPointerArray[RATE_SP_X] = &rateSetPointX;
   floatPointerArray[RATE_SP_Y] = &rateSetPointY;
   floatPointerArray[RATE_SP_Z] = &rateSetPointZ;
-  floatPointerArray[ADJ_X] = &adjustmentX;
-  floatPointerArray[ADJ_Y] = &adjustmentY;
-  floatPointerArray[ADJ_Z] = &adjustmentZ;
+  floatPointerArray[ADJ_X] = &imu.inertialXBiased;
+  floatPointerArray[ADJ_Y] = &imu.inertialYBiased;
+  floatPointerArray[ADJ_Z] = &imu.inertialZBiased;
   floatPointerArray[PITCH_SP] = &pitchSetPoint;
   floatPointerArray[ROLL_SP] = &rollSetPoint;
   floatPointerArray[YAW_SP] = &yawSetPoint;
@@ -122,11 +122,11 @@ void AssignPointerArray(){
   floatPointerArray[DIST_TO_WP] = &tempOutput;
 
   floatPointerArray[TARGET_VEL_WP] = &velZMeas;
-  floatPointerArray[POS_ERR] = &ultraSonicRange;
-  floatPointerArray[ACC_CIR] = &imu.lagZVel;
+  floatPointerArray[POS_ERR] = &imu.lagEstForDebugPos;
+  floatPointerArray[ACC_CIR] = &imu.lagEstForDebugVel;
   floatPointerArray[DR_VEL_X] = &velN;
   floatPointerArray[DR_VEL_Y] = &velE;
-  floatPointerArray[DR_POS_X] = &drPosX;
+  floatPointerArray[DR_POS_X] = &baroVel;
   floatPointerArray[DR_POS_Y] = &drPosY;
   floatPointerArray[MOTOR_CMD_1] = &imu.accelBiasX;
   floatPointerArray[MOTOR_CMD_2] = &imu.accelBiasY;
@@ -160,7 +160,7 @@ void AssignPointerArray(){
   int32PointerArray[LAT_] = &lattitude;
   int32PointerArray[LON_] = &longitude;
 
-  bytePointerArray[FLIGHT_MODE] = &pingFlag;
+  bytePointerArray[FLIGHT_MODE] = &flightMode;
   bytePointerArray[RTB_STATE] = &RTBState;
   bytePointerArray[Z_LOIT] = &ZLoiterState;
   bytePointerArray[XY_LOIT] = &XYLoiterState;

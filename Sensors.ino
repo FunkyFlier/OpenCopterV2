@@ -1,78 +1,54 @@
 /*
 void SonarInit(){
+ 
+ DDRB |= (1<<PB5);
+ TCCR1A = (1<<WGM11)|(1<<COM1A1);
+ TCCR1B = (1<<WGM13)|(1<<WGM12)|(1<<CS11)|(1<<CS10);
+ ICR1 = PERIOD_TRIG;  
+ OCR1A = 2; 
+ 
+ DDRB &= ~(1<<PB6);
+ PORTK |= (1<<PB6);
+ PCMSK0 |= 1<<PCINT6;
+ PCICR |= 1<<0;
+ 
+ }*/
 
-  DDRB |= (1<<PB5);
-  TCCR1A = (1<<WGM11)|(1<<COM1A1);
-  TCCR1B = (1<<WGM13)|(1<<WGM12)|(1<<CS11)|(1<<CS10);
-  ICR1 = PERIOD_TRIG;  
-  OCR1A = 2; 
 
-  DDRB &= ~(1<<PB6);
-  PORTK |= (1<<PB6);
-  PCMSK0 |= 1<<PCINT6;
-  PCICR |= 1<<0;
-
-}*/
-
-
-
+/*
 ISR(PCINT0_vect){
-
-  if (((PINB & 1<<PB6)>>PB6) == 1){
-    start = micros();
-
-  }
-  else{
-    width = (micros() - start);
-    if (width <= 17400){
-      newPing = true;
-      baroCorrect = false;
-    }
-    else{
-      baroCorrect = true;
-    }
-
-  }
-
-}
-
+ 
+ if (((PINB & 1<<PB6)>>PB6) == 1){
+ start = micros();
+ 
+ }
+ else{
+ width = (micros() - start);
+ if (width <= 17400){
+ newPing = true;
+ baroCorrect = false;
+ }
+ else{
+ baroCorrect = true;
+ }
+ 
+ }
+ 
+ }
+ */
 
 void GetInitialQuat(){
+  uint8_t i = 0;
   float inertialSumX,inertialSumY,inertialSumZ;
   imu.InitialQuat();
 
 
-
-  imu.kpAcc = kp_waypoint_position.val;
-  imu.kiAcc = ki_waypoint_position.val;
-  imu.kpMag = kd_waypoint_position.val;
-  imu.kiMag = fc_waypoint_position.val;
-  //imu.FEEDBACK_LIMIT = 0.5;
-  imu.DECLINATION = ToRad(fc_cross_track.val);
-  imu.COS_DEC = cos(imu.DECLINATION);
-  imu.SIN_DEC = sin(imu.DECLINATION);
-  //Serial<<imu.kpAcc<<","<<imu.kiAcc<<","<<imu.kpMag<<","<<imu.kiMag<<","<<imu.FEEDBACK_LIMIT<<","<<imu.DECLINATION<<"\r\n";
   imu.GenerateRotationMatrix();
-  imu.GetGravOffset();
   imuTimer = micros();
-  for (int i = 0; i < 500; i++){
-    while(micros() - imuTimer < 13333){
-    }
 
-    imuDT = (micros() - imuTimer ) * 0.000001;
-    imuTimer = micros();
-    GetMag();
-    GetAcc();
-    GetGyro();
 
-    accToFilterX = -1.0 * filtAccX.val;//if the value from the smoothing filter is sent it will not work when the algorithm normalizes the vector
-    accToFilterY = -1.0 * filtAccY.val;
-    accToFilterZ = -1.0 * filtAccZ.val;
-    imu.AHRSupdate();
-    imu.GenerateRotationMatrix();
-    imu.GetEuler();
-    //Serial<<i<<","<<imu.pitch.val<<","<<imu.roll.val<<","<<imu.yaw.val<<"\r\n";
-  }
+  imu.GetEuler();
+
 
   imu.initialAccMagnitude.val = 0;
   inertialSumZ = 0;
@@ -85,7 +61,6 @@ void GetInitialQuat(){
   }
 
   imu.initialAccMagnitude.val = inertialSumZ / 200.0;
-  //imu.initialAccMagnitude.val = - 9.81;
 
   imu.accelBiasX.val = 0;
   imu.accelBiasY.val = 0;
@@ -101,20 +76,6 @@ void CalibrateSensors(){
   while(1){
     if ( millis() - generalPurposeTimer >= 10){
       generalPurposeTimer = millis();
-      /*
-      SPI.setDataMode(SPI_MODE3);
-       AccSSLow();
-       SPI.transfer(DATAX0 | READ | MULTI);
-       accX.buffer[0] = SPI.transfer(0x00);
-       accX.buffer[1] = SPI.transfer(0x00);
-       accY.buffer[0] = SPI.transfer(0x00);
-       accY.buffer[1] = SPI.transfer(0x00);
-       accZ.buffer[0] = SPI.transfer(0x00);
-       accZ.buffer[1] = SPI.transfer(0x00);
-       AccSSHigh();  
-       accY.val *= -1;
-       accZ.val *= -1;*/
-
 
       AccSSLow();
       SPI.transfer(OUT_X_L_A | READ | MULTI);
@@ -128,10 +89,12 @@ void CalibrateSensors(){
       accY.val = accY.val>>4;
       accZ.val = accZ.val>>4;
       AccSSHigh();
+#ifdef ROT_45
       tempX = accX.val *  0.7071067 + accY.val * 0.7071067;
       tempY = accX.val * -0.7071067 + accY.val * 0.7071067;
       accX.val = tempX;
       accY.val = tempY;
+#endif
 
       I2c.read(MAG_ADDRESS,LSM303_OUT_X_H,6);
       magX.buffer[1] = I2c.receive();//X
@@ -140,8 +103,7 @@ void CalibrateSensors(){
       magZ.buffer[0] = I2c.receive();
       magY.buffer[1] = I2c.receive();//Y
       magY.buffer[0] = I2c.receive();
-      //magY.val *= -1;
-      //magZ.val *= -1;
+
 
       PollPressure();
       if (newBaro == true){
@@ -435,35 +397,7 @@ void GetAltitude(float *press,float *pressInit, float *alti){
 }
 
 void PollPressure(void){
-  /*  if (millis() - baroPollTimer > POLL_RATE){
-   switch (pressureState){
-   case 0://read ut
-   StartUT();
-   pressureState = 1;
-   baroTimer = millis();
-   break;
-   case 1://wait for ready signal
-   if (millis() - baroTimer > 5){
-   pressureState = 2;
-   ut = ReadUT();
-   StartUP();
-   baroTimer = millis();
-   }
-   
-   break;
-   case 2://read up
-   if (millis() - baroTimer > CONV_TIME){
-   up = ReadUP();
-   temperature = Temperature(ut);
-   pressure.val = Pressure(up);
-   pressureState = 0;
-   newBaro = true;
-   baroPollTimer = millis();
-   }
-   break;
-   
-   }
-   }*/
+
 
 
   if (millis() - baroPollTimer >= BARO_CONV_TIME){
@@ -536,52 +470,6 @@ void GetBaro(){
 }
 
 void BaroInit(void){
-  /* pressureState = 0;
-   newBaro = false;
-   I2c.read(BMP085_ADDRESS,0xAA,22);
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   ac1 = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   ac2 = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   ac3 = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   ac4 = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   ac5 = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   ac6 = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   b1 = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   b2 = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   mb = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   mc = (msb << 8) | lsb;
-   
-   msb = I2c.receive();
-   lsb = I2c.receive();
-   md = (msb << 8) | lsb;*/
 
   BaroSSLow();
   SPI.transfer(MS5611_RESET);
@@ -648,9 +536,9 @@ void BaroInit(void){
 
 void MagInit(){
   //continous conversion 220Hz
-  I2c.write((uint8_t)MAG_ADDRESS,(uint8_t)LSM303_CRA_REG,(uint8_t)0x18);
+  I2c.write((uint8_t)MAG_ADDRESS,(uint8_t)LSM303_CRA_REG,(uint8_t)0x9C);
   I2c.write((uint8_t)MAG_ADDRESS,(uint8_t)LSM303_CRB_REG,(uint8_t)0x60);
-  I2c.write((uint8_t)MAG_ADDRESS,(uint8_t)LSM303_MR_REG,(uint8_t)0x00);
+  I2c.write((uint8_t)MAG_ADDRESS,(uint8_t)LSM303_MR_REG,(uint8_t)0x80);
   I2c.read(MAG_ADDRESS,LSM303_OUT_X_H,6);
   magX.buffer[1] = I2c.receive();//X
   magX.buffer[0] = I2c.receive();
@@ -658,8 +546,7 @@ void MagInit(){
   magZ.buffer[0] = I2c.receive();
   magY.buffer[1] = I2c.receive();//Y
   magY.buffer[0] = I2c.receive();
-  //magY.val *= -1;
-  //magZ.val *= -1;
+
   shiftedMagX  = magX.val - magOffSetX;
   shiftedMagY  = magY.val - magOffSetY;
   shiftedMagZ  = magZ.val - magOffSetZ;
@@ -677,23 +564,7 @@ void MagInit(){
 }
 
 void AccInit(){
-  /*
-  SPI.setDataMode(SPI_MODE3);
-   
-   AccSSLow();
-   SPI.transfer(WRITE | SINGLE | BW_RATE);
-   SPI.transfer(0x0C);
-   AccSSHigh();
-   
-   AccSSLow();
-   SPI.transfer(WRITE | SINGLE | POWER_CTL);
-   SPI.transfer(0x08);//start measurment
-   AccSSHigh();
-   
-   AccSSLow();
-   SPI.transfer(WRITE | SINGLE | DATA_FORMAT);
-   SPI.transfer(0x08);//full resolution + / - 16g
-   AccSSHigh();*/
+
   AccSSLow();
   SPI.transfer(CTRL_REG1_A | WRITE | SINGLE);
   SPI.transfer(0x77);//400Hz all axes enabled
@@ -727,28 +598,18 @@ void AccInit(){
 
   GetAcc();
 
-  if (accX.val > 0){
-    scaledAccX.val = accX.val * accXScalePos;
-  }
-  else{
-    scaledAccX.val = accX.val * accXScaleNeg;
-  }
-  if (accY.val > 0){
-    scaledAccY.val = accY.val  * accYScalePos;
-  }
-  else{
-    scaledAccY.val = accY.val  * accYScaleNeg;
-  }
-  if (accZ.val > 0){
-    scaledAccZ.val = accZ.val * accZScalePos;
-  }
-  else{
-    scaledAccZ.val = accZ.val * accZScaleNeg;
-  }
+
+  shiftedAccX.val  = accX.val - -1.5;
+  shiftedAccY.val  = accY.val - -0.5;
+  shiftedAccZ.val  = accZ.val - -3;
+  scaledAccX.val = shiftedAccX.val * 0.019425173;
+  scaledAccY.val = shiftedAccY.val * 0.019463753;
+  scaledAccZ.val = shiftedAccZ.val * 0.019329388;
+  
+  
   filtAccX.val = scaledAccX.val;
   filtAccY.val = scaledAccY.val;
   filtAccZ.val = scaledAccZ.val; 
-
 
   for (uint16_t i = 0;i < 100; i++){
     GetAcc();
@@ -771,7 +632,7 @@ void GyroInit(){
 
   GyroSSLow();
   SPI.transfer(L3G_CTRL_REG4 | WRITE | SINGLE);
-  SPI.transfer(0x20); //2000dps scale
+  SPI.transfer(0x30); //2000dps scale
   GyroSSHigh();
 
   GyroSSLow();
@@ -805,7 +666,7 @@ void GyroInit(){
     GyroSSHigh();
     delay(3);
   }
-  for (uint16_t j = 0; j < 50; j ++){
+  for (uint16_t j = 0; j < 500; j ++){
     GyroSSLow();
     SPI.transfer(L3G_OUT_X_L  | READ | MULTI);
     gyroX.buffer[0] = SPI.transfer(0x00);
@@ -819,15 +680,13 @@ void GyroInit(){
     gyroSumX += gyroX.val;
     gyroSumY += (gyroY.val);
     gyroSumZ += (gyroZ.val);
-    //Serial<<gyroX.val<<","<<gyroY.val<<","<<gyroZ.val<<"\r\n";
-    
+
     delay(3);
   }
-  gyroOffsetX = gyroSumX / 50;
-  gyroOffsetY = gyroSumY / 50;
-  gyroOffsetZ = gyroSumZ / 50;
-  //Serial<<"++++++++++\r\n";
-  //Serial<<gyroOffsetX<<","<<gyroOffsetY<<","<<gyroOffsetZ<<"\r\n";
+  gyroOffsetX = gyroSumX / 500.0;
+  gyroOffsetY = gyroSumY / 500.0;
+  gyroOffsetZ = gyroSumZ / 500.0;
+
   GetGyro();
 
 }
@@ -840,14 +699,7 @@ void GetMag(){
   magZ.buffer[0] = I2c.receive();
   magY.buffer[1] = I2c.receive();//Y
   magY.buffer[0] = I2c.receive();
-  //magY.val *= -1;
-  //magZ.val *= -1;
-  //sign swap due to different compass
-  //deltaTemp.val = temperature - calibTempMag.val;
-
-  /* magX.val -= deltaTemp.val * xSlopeMag.val;
-   magY.val += deltaTemp.val * ySlopeMag.val;
-   magZ.val += deltaTemp.val * zSlopeMag.val;*/
+ 
 
   shiftedMagX  = magX.val - magOffSetX;
   shiftedMagY  = magY.val - magOffSetY;
@@ -855,22 +707,27 @@ void GetMag(){
   scaledMagX = magWInv00 * shiftedMagX + magWInv01 * shiftedMagY + magWInv02 * shiftedMagZ;
   scaledMagY = magWInv10 * shiftedMagX + magWInv11 * shiftedMagY + magWInv12 * shiftedMagZ;
   scaledMagZ = magWInv20 * shiftedMagX + magWInv21 * shiftedMagY + magWInv22 * shiftedMagZ;
-  calibMagX.val = calibMagX.val * 0.75 + scaledMagX * 0.25;
-  calibMagY.val = calibMagY.val * 0.75 + scaledMagY * 0.25;
-  calibMagZ.val = calibMagZ.val * 0.75 + scaledMagZ * 0.25;
+
+
+  calibMagX.val = scaledMagX;
+  calibMagY.val = scaledMagY;
+  calibMagZ.val = scaledMagZ;
+
+
   magToFiltX = calibMagX.val;
   magToFiltY = calibMagY.val;
   magToFiltZ = calibMagZ.val;
+
 }
 void UpdateOffset(){
-   gyroOffsetX = 0;
+  gyroOffsetX = 0;
   gyroOffsetY = 0;
   gyroOffsetZ = 0;
   gyroSumX = 0;
   gyroSumY = 0;
   gyroSumZ = 0;
- 
-  for (uint16_t j = 0; j < 50; j ++){
+
+  for (uint16_t j = 0; j < 150; j ++){
     GyroSSLow();
     SPI.transfer(L3G_OUT_X_L  | READ | MULTI);
     gyroX.buffer[0] = SPI.transfer(0x00);
@@ -884,13 +741,12 @@ void UpdateOffset(){
     gyroSumX += gyroX.val;
     gyroSumY += (gyroY.val);
     gyroSumZ += (gyroZ.val);
-    //Serial<<gyroX.val<<","<<gyroY.val<<","<<gyroZ.val<<"\r\n";
-    
+
     delay(3);
   }
-  gyroOffsetX = gyroSumX / 50;
-  gyroOffsetY = gyroSumY / 50;
-  gyroOffsetZ = gyroSumZ / 50;
+  gyroOffsetX = gyroSumX / 150;
+  gyroOffsetY = gyroSumY / 150;
+  gyroOffsetZ = gyroSumZ / 150;
 }
 void GetGyro(){
 
@@ -906,23 +762,18 @@ void GetGyro(){
   GyroSSHigh();
 
 
-  //deltaTemp.val = temperature - initialTemp.val;
-  /* deltaTemp.val = 0;
-   
-   
-   gyroX.val -= ( (deltaTemp.val * xSlopeGyro.val) + gyroOffsetX); 
-   gyroY.val -= ( (deltaTemp.val * ySlopeGyro.val) + gyroOffsetY);
-   gyroZ.val -= ( (deltaTemp.val * zSlopeGyro.val) + gyroOffsetZ);*/
 
 
   gyroX.val -= gyroOffsetX; 
   gyroY.val -= gyroOffsetY;
   gyroZ.val -= gyroOffsetZ;
+#ifdef ROT_45
   tempX = gyroX.val *  0.7071067 + gyroY.val * 0.7071067;
   tempY = gyroX.val * -0.7071067 + gyroY.val * 0.7071067;
   gyroX.val = tempX;
   gyroY.val = tempY;
-  //Serial<<gyroX.val<<","<<gyroY.val<<","<<gyroZ.val<<"\r\n";
+#endif
+
   degreeGyroX.val = gyroX.val * 0.07;
   degreeGyroY.val = gyroY.val * 0.07;
   degreeGyroZ.val = gyroZ.val * 0.07;
@@ -947,140 +798,37 @@ void GetAcc(){
   accX.val = accX.val>>4;
   accY.val = accY.val>>4;
   accZ.val = accZ.val>>4;
-
+#ifdef ROT_45
   tempX = accX.val *  0.7071067 + accY.val * 0.7071067;
   tempY = accX.val * -0.7071067 + accY.val * 0.7071067;
   accX.val = tempX;
   accY.val = tempY;
+#endif
 
-  //shiftedAccX.val = sqrt((float)accX.val * (float)accX.val + (float)accY.val * (float)accY.val + (float)accZ.val * (float)accZ.val);
-  //deltaTemp.val = temperature - calibTempAcc.val;
-  //deltaTemp.val =0;
-
-  /*  accXScalePos = 9.8 / kp_pitch_rate.val ;
-   accYScalePos = 9.8 / ki_pitch_rate.val ;
-   accZScalePos = 9.8 / kd_pitch_rate.val ;
-   
-   accXScaleNeg = 9.8 / fc_pitch_rate.val ;
-   accYScaleNeg = 9.8 / kp_roll_rate.val ;
-   accZScaleNeg = 9.8 / ki_roll_rate.val ;*/
+  shiftedAccX.val  = accX.val - 3.5;
+  shiftedAccY.val  = accY.val - -1;
+  shiftedAccZ.val  = accZ.val - -3.5;
+  scaledAccX.val = shiftedAccX.val * 0.01931034482758620689655172413793;
+  scaledAccY.val = shiftedAccY.val * 0.01929133858267716535433070866142;
+  scaledAccZ.val = shiftedAccZ.val * 0.01950248756218905472636815920398;
 
 
-  /*
-  accX.val -= (xAccOffset.val + (deltaTemp.val) * xSlopeAcc.val);
-   accY.val -= (yAccOffset.val + (deltaTemp.val) * ySlopeAcc.val);
-   accZ.val -= (deltaTemp.val) * zSlopeAcc.val;*/
-  //accX.val -= (deltaTemp.val * xSlopeAcc.val);
-  //accY.val -= (deltaTemp.val * ySlopeAcc.val);
-  //accZ.val -= (deltaTemp.val * zSlopeAcc.val);
-
-  if (accX.val > 0){
-    scaledAccX.val = accX.val * accXScalePos;
-    //scaledAccX.val = accX.val * 0.019232445;
-  }
-  else{
-    scaledAccX.val = accX.val * accXScaleNeg;
-    //scaledAccX.val = accX.val * 0.018987648;
-  }
-  if (accY.val > 0){
-    scaledAccY.val = accY.val * accYScalePos;
-    //scaledAccY.val = accY.val * 0.01898699;
-  }
-  else{
-    scaledAccY.val = accY.val * accYScaleNeg;
-    //scaledAccY.val = accY.val * 0.019236658;
-  }
-  if (accZ.val > 0){
-    scaledAccZ.val = accZ.val * accZScalePos;
-    //scaledAccZ.val = accZ.val * 0.019563049;
-  }
-  else{
-    scaledAccZ.val = accZ.val * accZScaleNeg;
-    //scaledAccZ.val = accZ.val * 0.018522824;
-  } 
-
-  /*shiftedAccX.val  = accX.val - -3.915546;
-   shiftedAccY.val  = accY.val - -5.206482;
-   shiftedAccZ.val  = accZ.val - -13.800706;
-   scaledAccX.val = 0.019069 * shiftedAccX.val + 0.000018 * shiftedAccY.val + -0.000029 * shiftedAccZ.val;
-   scaledAccY.val = 0.000018 * shiftedAccX.val + 0.019152 * shiftedAccY.val + 0.000017 * shiftedAccZ.val;
-   scaledAccZ.val = -0.000029 * shiftedAccX.val + 0.000017 * shiftedAccY.val + 0.018951 * shiftedAccZ.val; */
-  /*  shiftedAccX.val  = accX.val - -3.28;
-   shiftedAccY.val  = accY.val - -4.79;
-   shiftedAccZ.val  = accZ.val - -13.76;
-   scaledAccX.val = shiftedAccX.val * 0.019086;
-   scaledAccY.val = shiftedAccY.val * 0.019138;
-   scaledAccZ.val = shiftedAccZ.val * 0.018958;*/
-
-
-  //Filter(&scaledAccX,&scaledAccY,&scaledAccZ,&filtAccX.val,&filtAccY.val,&filtAccZ.val);
   filtAccX.val = filtAccX.val * 0.9 + scaledAccX.val * 0.1;
   filtAccY.val = filtAccY.val * 0.9 + scaledAccY.val * 0.1;
   filtAccZ.val = filtAccZ.val * 0.9 + scaledAccZ.val * 0.1;
 
+  accToFilterX = -1.0 * filtAccX.val;//if the value from the smoothing filter is sent it will not work when the algorithm normalizes the vector
+  accToFilterY = -1.0 * filtAccY.val;
+  accToFilterZ = -1.0 * filtAccZ.val;
+
 }
 
-void WaitForTempStab(){
-  boolean stabTemp = false;
-  boolean tog;
-  uint8_t tempState = 0;
-  while (stabTemp == false){
-    if (millis() - ledTimer >= 1000){
-      ledTimer = millis();
-      tog = ~tog;
-      digitalWrite(RED,tog);
-      digitalWrite(YELLOW,tog);
-      digitalWrite(GREEN,tog);
-      digitalWrite(13,tog);
-    }
-    PollPressure();
-    if (newBaro == true){
-      newBaro = false;
-      switch(tempState){
-      case 0://set final temperature
-        initialTemp.val  = temperature;
-        tempState = 1;
-        generalPurposeTimer = millis();
-        digitalWrite(RED,LOW);
 
-        break;
-      case 1://wait 
-        if (abs(temperature - initialTemp.val ) > 200){
-          generalPurposeTimer = millis();//reset timer if temp has changed by more than a degree
-          initialTemp.val = temperature;
-        }
-        if (millis() - generalPurposeTimer > 3000){
-          //if (millis() - generalPurposeTimer > 1){
-          tempState = 2;
-        }
-        digitalWrite(YELLOW,LOW);
 
-        break;
-      case 2:
-        if (abs(temperature - initialTemp.val ) <= 200){
-          initialTemp.val  = temperature;
-          stabTemp = true;
-        }
-        else{
-          tempState = 0;
-        }
-        digitalWrite(GREEN,LOW);
-        break;
-      }
-    }
-  }
-  baroCount = 0;
-  baroSum = 0;
-  while (baroCount < 10){//use a while instead of a for loop because the for loop runs too fast
-    PollPressure();
-    if (newBaro == true){
-      newBaro = false;
-      baroCount++;
-      baroSum += pressure.val;
-    }    
-  }
-  pressureInitial = baroSum / 10;    
-}
+
+
+
+
 
 
 

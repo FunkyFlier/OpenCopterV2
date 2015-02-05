@@ -1,6 +1,6 @@
 void _200HzISRConfig(){
   TCCR5A = (1<<COM5A1);
-  TCCR5B = (1<<CS51)|(1<<WGM52);//why WGM52?
+  TCCR5B = (1<<CS51)|(1<<WGM52);
   TIMSK5 = (1<<OCIE5A);
   OCR5A = 10000;
 }
@@ -27,10 +27,14 @@ ISR(TIMER5_COMPA_vect, ISR_NOBLOCK){
     //Motor7WriteMicros(1000);
     //Motor8WriteMicros(1000);
     while(1){
-      digitalWrite(RED,HIGH);
+      digitalWrite(13,LOW);
+      digitalWrite(RED,LOW);
+      digitalWrite(YELLOW,LOW);
       digitalWrite(GREEN,LOW);
       delay(500);
-      digitalWrite(RED,LOW);
+      digitalWrite(13,HIGH);
+      digitalWrite(RED,HIGH);
+      digitalWrite(YELLOW,HIGH);
       digitalWrite(GREEN,HIGH);
       delay(500);
     }
@@ -42,11 +46,8 @@ void ReadSerialStreams(){
   }
 
 
- if (GPSDetected == true){
-    gps.Monitor();
-  }
-
 }
+
 
 
 

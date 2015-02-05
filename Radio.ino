@@ -1,8 +1,6 @@
 void Radio(){
- // Port0<<"*\r\n";
   uint8_t j;
   while(radioStream->available() > 0){//---
-    //Port0<<"@@\r\n";
     radioByte = radioStream->read();
     switch (radioState){//+++
 
