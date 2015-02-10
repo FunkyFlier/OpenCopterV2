@@ -11,9 +11,10 @@
 
 #define ROT_45
 
-#define FREQ_TRIG 20
-#define PRESCALE_TRIG 64
-#define PERIOD_TRIG ((F_CPU/PRESCALE_TRIG/FREQ_TRIG) - 1)
+
+#define FC 5
+#define RC_CONST 1/(2.0 * 3.14 * FC)
+
 
 #define RADIUS_EARTH 6372795
 
@@ -481,7 +482,8 @@ uint32_t imuTimer,GPSTimer;
 uint32_t generalPurposeTimer;
 float imuDT;
 float GPSDT;
-
+float lpfDT,beta;
+float_u alpha;
 //protocol related vars 
 
 int32_u lattitude;//12
@@ -627,7 +629,8 @@ float magWInv12;
 float magWInv20;
 float magWInv21;
 float magWInv22;
-float accXScalePos, accYScalePos, accZScalePos, accXScaleNeg, accYScaleNeg, accZScaleNeg;
+//float accXScalePos, accYScalePos, accZScalePos, accXScaleNeg, accYScaleNeg, accZScaleNeg;
+float accXScale, accYScale, accZScale, accXOffset, accYOffset, accZOffset;
 
 
 float gravSum;
@@ -875,12 +878,12 @@ void setup(){
 
   ModeSelect();
   Arm();//move the rudder to the right to begin calibration
+  GPSStart();
   BaroInit();
   GyroInit();
   AccInit();
   MagInit();
   GetInitialQuat();
-  GPSStart();
   CheckTXPositions();
 
   imu.DECLINATION = ToRad(3.3);
@@ -1068,6 +1071,7 @@ void loop(){
 void _400HzTask(){
   _400Time = micros();
   if ( _400Time -_400HzTimer  >=2500 ){
+    lpfDT = (_400Time -_400HzTimer)*0.000001;
     _400HzTimer = _400Time;
     GetAcc();
   }

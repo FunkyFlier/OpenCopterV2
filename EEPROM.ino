@@ -102,9 +102,9 @@ void AssignPointerArray(){
   floatPointerArray[RATE_SP_X] = &rateSetPointX;
   floatPointerArray[RATE_SP_Y] = &rateSetPointY;
   floatPointerArray[RATE_SP_Z] = &rateSetPointZ;
-  floatPointerArray[ADJ_X] = &imu.inertialXBiased;
-  floatPointerArray[ADJ_Y] = &imu.inertialYBiased;
-  floatPointerArray[ADJ_Z] = &imu.inertialZBiased;
+  floatPointerArray[ADJ_X] = &scaledAccX;
+  floatPointerArray[ADJ_Y] = &alpha;
+  floatPointerArray[ADJ_Z] = &scaledAccZ;
   floatPointerArray[PITCH_SP] = &pitchSetPoint;
   floatPointerArray[ROLL_SP] = &rollSetPoint;
   floatPointerArray[YAW_SP] = &yawSetPoint;
@@ -581,40 +581,39 @@ void LoadROM(){
     }
   }
 
-  outFloatIndex = 0;
+   outFloatIndex = 0;
   for (uint16_t i = 1; i <= 24; i++){//load acc values
     outFloat.buffer[outFloatIndex] = EEPROM.read(i);
     outFloatIndex++;
     switch (i){
     case 4:
-      accXScalePos = outFloat.val;
+      accXScale = outFloat.val;
       outFloatIndex = 0;
       break;
     case 8:
-      accYScalePos = outFloat.val;
+      accYScale = outFloat.val;
       outFloatIndex = 0;
       break;
     case 12:
-      accZScalePos = outFloat.val;
+      accZScale = outFloat.val;
       outFloatIndex = 0;
       break;  
     case 16:
-      accXScaleNeg = outFloat.val;
+      accXOffset = outFloat.val;
       outFloatIndex = 0;
       break;  
     case 20:
-      accYScaleNeg = outFloat.val;
+      accYOffset = outFloat.val;
       outFloatIndex = 0;
       break;  
     case 24:
-      accZScaleNeg = outFloat.val;
+      accZOffset = outFloat.val;
       outFloatIndex = 0;
       break;  
     default:
       break;
     }
   }
-
   outFloatIndex = 0;
   for (uint16_t i = 25; i <= 72; i++){//load the compass values
     outFloat.buffer[outFloatIndex] = EEPROM.read(i);

@@ -114,7 +114,7 @@ void ModeSelect(){
 void CheckTXPositions(){
   boolean positionOK = false;
   while (positionOK == false){
-    StartUpAHRSRun();
+    //StartUpAHRSRun();
     digitalWrite(RED,LOW);
     digitalWrite(YELLOW,LOW);
     digitalWrite(GREEN,HIGH);

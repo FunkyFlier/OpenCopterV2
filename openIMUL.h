@@ -25,8 +25,8 @@
  #define kiAcc 40.0
  #define kpMag 400.0
  #define kiMag 40.0*/
-#define LAG_SIZE 51
-#define LAG_SIZE_BARO 26
+#define LAG_SIZE 80
+#define LAG_SIZE_BARO 50
 //#define DECLINATION ToRad(3.3)
 //#define COS_DEC cos(DECLINATION)
 //#define SIN_DEC sin(DECLINATION) 

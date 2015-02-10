@@ -271,21 +271,21 @@ void SendCalData(){
     break;
   }
 }
-
+/*
 void StartUpAHRSRun(){
-  if ( micros() - imuTimer >= 13333){  
-    imuDT = (micros() - imuTimer) * 0.000001;
-    imuTimer = micros();
-    GetAcc();
-    GetMag();
-    GetGyro();
-    PollPressure();
-    if (newBaro == true){
-      newBaro = false;
-    } 
-    imu.AHRSupdate();
-  } 
-}
+ if ( micros() - imuTimer >= 13333){  
+ imuDT = (micros() - imuTimer) * 0.000001;
+ imuTimer = micros();
+ GetAcc();
+ GetMag();
+ GetGyro();
+ PollPressure();
+ if (newBaro == true){
+ newBaro = false;
+ } 
+ imu.AHRSupdate();
+ } 
+ }*/
 
 
 
@@ -599,14 +599,14 @@ void AccInit(){
   GetAcc();
 
 
-  shiftedAccX.val  = accX.val - -1.5;
-  shiftedAccY.val  = accY.val - -0.5;
-  shiftedAccZ.val  = accZ.val - -3;
-  scaledAccX.val = shiftedAccX.val * 0.019425173;
-  scaledAccY.val = shiftedAccY.val * 0.019463753;
-  scaledAccZ.val = shiftedAccZ.val * 0.019329388;
-  
-  
+  shiftedAccX.val  = accX.val - accXOffset;
+  shiftedAccY.val  = accY.val - accYOffset;
+  shiftedAccZ.val  = accZ.val - accZOffset;
+  scaledAccX.val = shiftedAccX.val * accXScale;
+  scaledAccY.val = shiftedAccY.val * accYScale;
+  scaledAccZ.val = shiftedAccZ.val * accZScale;
+
+
   filtAccX.val = scaledAccX.val;
   filtAccY.val = scaledAccY.val;
   filtAccZ.val = scaledAccZ.val; 
@@ -699,7 +699,7 @@ void GetMag(){
   magZ.buffer[0] = I2c.receive();
   magY.buffer[1] = I2c.receive();//Y
   magY.buffer[0] = I2c.receive();
- 
+
 
   shiftedMagX  = magX.val - magOffSetX;
   shiftedMagY  = magY.val - magOffSetY;
@@ -805,23 +805,36 @@ void GetAcc(){
   accY.val = tempY;
 #endif
 
-  shiftedAccX.val  = accX.val - 3.5;
-  shiftedAccY.val  = accY.val - -1;
-  shiftedAccZ.val  = accZ.val - -3.5;
-  scaledAccX.val = shiftedAccX.val * 0.01931034482758620689655172413793;
-  scaledAccY.val = shiftedAccY.val * 0.01929133858267716535433070866142;
-  scaledAccZ.val = shiftedAccZ.val * 0.01950248756218905472636815920398;
+  shiftedAccX.val  = accX.val - accXOffset;
+  shiftedAccY.val  = accY.val - accYOffset;
+  shiftedAccZ.val  = accZ.val - accZOffset;
+  scaledAccX.val = shiftedAccX.val * accXScale;
+  scaledAccY.val = shiftedAccY.val * accYScale;
+  scaledAccZ.val = shiftedAccZ.val * accZScale;
 
 
-  filtAccX.val = filtAccX.val * 0.9 + scaledAccX.val * 0.1;
-  filtAccY.val = filtAccY.val * 0.9 + scaledAccY.val * 0.1;
-  filtAccZ.val = filtAccZ.val * 0.9 + scaledAccZ.val * 0.1;
 
-  accToFilterX = -1.0 * filtAccX.val;//if the value from the smoothing filter is sent it will not work when the algorithm normalizes the vector
+  /*filtAccX.val = filtAccX.val * 0.9 + scaledAccX.val * 0.1;
+   filtAccY.val = filtAccY.val * 0.9 + scaledAccY.val * 0.1;
+   filtAccZ.val = filtAccZ.val * 0.9 + scaledAccZ.val * 0.1;*/
+  if (lpfDT > 0.005){
+    lpfDT = 0.005;
+  }
+  alpha.val = lpfDT / (lpfDT + RC_CONST);
+
+  beta = 1.0 - alpha.val;
+  filtAccX.val = filtAccX.val * beta + scaledAccX.val * alpha.val;
+  filtAccY.val = filtAccY.val * beta + scaledAccY.val * alpha.val;
+  filtAccZ.val = filtAccZ.val * beta + scaledAccZ.val * alpha.val;
+
+  accToFilterX = -1.0 * filtAccX.val;//if the value from the filter is sent it will not work when the algorithm normalizes the vector
   accToFilterY = -1.0 * filtAccY.val;
   accToFilterZ = -1.0 * filtAccZ.val;
 
 }
+
+
+
 
 
 
