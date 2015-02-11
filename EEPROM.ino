@@ -12,7 +12,7 @@ void AssignPointerArray(){
   floatPointerArray[MAG_Z_CALIB] = &calibMagZ;
   floatPointerArray[RAW_X] = &gpsX;
   floatPointerArray[RAW_Y] = &gpsY;
-  floatPointerArray[RAW_Z] = &zMeas;
+  floatPointerArray[RAW_Z] = &baroAlt;
   floatPointerArray[PITCH_] = &imu.pitch;
   floatPointerArray[ROLL_] = &imu.roll;
   floatPointerArray[YAW_] = &imu.yaw;
@@ -102,7 +102,7 @@ void AssignPointerArray(){
   floatPointerArray[RATE_SP_X] = &rateSetPointX;
   floatPointerArray[RATE_SP_Y] = &rateSetPointY;
   floatPointerArray[RATE_SP_Z] = &rateSetPointZ;
-  floatPointerArray[ADJ_X] = &scaledAccX;
+  floatPointerArray[ADJ_X] = &baroZ;
   floatPointerArray[ADJ_Y] = &alpha;
   floatPointerArray[ADJ_Z] = &scaledAccZ;
   floatPointerArray[PITCH_SP] = &pitchSetPoint;
@@ -128,8 +128,8 @@ void AssignPointerArray(){
   floatPointerArray[DR_VEL_Y] = &velE;
   floatPointerArray[DR_POS_X] = &baroVel;
   floatPointerArray[DR_POS_Y] = &drPosY;
-  floatPointerArray[MOTOR_CMD_1] = &imu.accelBiasX;
-  floatPointerArray[MOTOR_CMD_2] = &imu.accelBiasY;
+  floatPointerArray[MOTOR_CMD_1] = &baroRate;
+  floatPointerArray[MOTOR_CMD_2] = &baroVel;
   floatPointerArray[MOTOR_CMD_3] = &imu.accelBiasZ;
   floatPointerArray[MOTOR_CMD_4] = &pressure;
   floatPointerArray[PITCH_OFF] = &imu.pitchOffset;

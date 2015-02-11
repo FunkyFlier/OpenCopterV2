@@ -15,6 +15,10 @@
 #define FC 5
 #define RC_CONST 1/(2.0 * 3.14 * FC)
 
+#define FC_BARO 3.0
+#define RC_CONST_BARO 1/(2.0 * 3.14 * FC_BARO)
+
+
 
 #define RADIUS_EARTH 6372795
 
@@ -482,7 +486,7 @@ uint32_t imuTimer,GPSTimer;
 uint32_t generalPurposeTimer;
 float imuDT;
 float GPSDT;
-float lpfDT,beta;
+float lpfDT,beta,alphaBaro,betaBaro;
 float_u alpha;
 //protocol related vars 
 
@@ -741,7 +745,8 @@ volatile boolean baroCorrect;
 float_u altX,altY,altZ;
 float_u tempOutput;
 uint32_t pingTimer,baroTimer;
-float baroRate,baroDT,prevBaro,pingRate,pingDT,prevPing;
+float baroDT,prevBaro,pingRate,pingDT,prevPing;
+float_u baroRate;
 float_u baroVel,baroAlt,velZMeas,pingVel;
 int16_t lagAmount,tempX,tempY;
 
@@ -878,7 +883,7 @@ void setup(){
 
   ModeSelect();
   Arm();//move the rudder to the right to begin calibration
-  GPSStart();
+  //GPSStart();
   BaroInit();
   GyroInit();
   AccInit();
@@ -920,9 +925,9 @@ void loop(){
     imu.kPosBaro = kp_cross_track.val;
     imu.kVelBaro = ki_cross_track.val;
     imu.kAccBaro = kd_cross_track.val;
-    imu.DECLINATION = ToRad(fc_cross_track.val);
-    imu.COS_DEC = cos(imu.DECLINATION);
-    imu.SIN_DEC = sin(imu.DECLINATION);
+    //imu.lagAmount = uint8_t(fc_cross_track.val);
+    //imu.COS_DEC = cos(imu.DECLINATION);
+    //imu.SIN_DEC = sin(imu.DECLINATION);
     //imu.lagAmount = (uint8_t)fc_cross_track.val;
     loopCount_ = 0;
     GetGyro();
@@ -976,16 +981,32 @@ void loop(){
       GetAltitude(&pressure.val,&pressureInitial,&baroAlt.val);
       baroDT = (millis() - baroTimer) * 0.001;
       baroTimer = millis();
-      baroZ.val  =  baroZ.val * 0.85 + baroAlt.val * 0.15;
-      if (baroDT <= 0.1){
+      
+      //baroZ.val  =  baroZ.val * 0.85 + baroAlt.val * 0.15;
+
+      /*if (baroDT <= 0.1){
         baroRate = (baroZ.val - prevBaro) / baroDT;
 
       }
       else{
+        baroDT = 0.1;
         baroRate = 0;
-      }
+      }*/
 
-      baroVel.val = baroVel.val * 0.5 + baroRate * 0.5;
+      if (baroDT >= 0.1){
+        baroDT = 0.1;
+        
+
+      }
+      alphaBaro = baroDT / (baroDT + RC_CONST_BARO);
+      betaBaro = 1 - alphaBaro;
+      baroZ.val = baroZ.val * betaBaro + baroAlt.val * alphaBaro;
+      baroRate.val = (baroZ.val - prevBaro) / baroDT;
+      
+      //baroVel.val = baroVel.val * 0.5 + baroRate * 0.5;
+      baroVel.val = baroVel.val * betaBaro + baroRate.val * alphaBaro;
+      
+      
       prevBaro = baroZ.val;
       velZMeas.val = baroVel.val;
       zMeas.val = baroZ.val;

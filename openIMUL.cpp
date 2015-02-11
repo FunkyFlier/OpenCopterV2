@@ -94,7 +94,7 @@ void openIMU::UpdateLagIndex(void){
     currentEstIndex = 0;
   }
 
-  lagIndex = currentEstIndex - 50;
+  lagIndex = currentEstIndex - 55;
 
 
   if (lagIndex < 0){
@@ -107,7 +107,7 @@ void openIMU::UpdateLagIndex(void){
   if (currentEstIndex_z == (LAG_SIZE_BARO)){
     currentEstIndex_z = 0;
   }
-  lagIndex_z = currentEstIndex_z - 25;
+  lagIndex_z = currentEstIndex_z - 26;
 
   if (lagIndex_z < 0){
     lagIndex_z = LAG_SIZE_BARO + lagIndex_z;
@@ -216,6 +216,9 @@ void openIMU::Predict(void){
   YVelHist[currentEstIndex] = velY.val;
 
   //lagEstForDebug.val = XVelHist[lagIndex];
+  
+  //lagEstForDebugVel.val = XVelHist[lagIndex];
+  //lagEstForDebugPos.val = XEstHist[lagIndex];
 
 
   ZEstHist[currentEstIndex_z] = ZEst.val;
