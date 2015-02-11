@@ -883,7 +883,7 @@ void setup(){
 
   ModeSelect();
   Arm();//move the rudder to the right to begin calibration
-  //GPSStart();
+  GPSStart();
   BaroInit();
   GyroInit();
   AccInit();
