@@ -58,6 +58,9 @@ float *accZ, float *scAccX, float *scAccY, float *scAccZ, float *magX, float *ma
   kPosBaro = 0.09;
   kVelBaro = 0.09;
   kAccBaro = 1e-6;
+  
+  currentEstIndex = 0;
+  currentEstIndex_z = 0;
 
   for (int i = 0; i < LAG_SIZE; i++){
     XEstHist[i] = 0;
@@ -90,7 +93,7 @@ void openIMU::UpdateLagIndex(void){
 
 
   currentEstIndex++;
-  if (currentEstIndex == (LAG_SIZE)){
+  if (currentEstIndex >= (LAG_SIZE) || currentEstIndex < 0){
     currentEstIndex = 0;
   }
 
@@ -104,7 +107,7 @@ void openIMU::UpdateLagIndex(void){
 
   //0.3sec lag
   currentEstIndex_z++;
-  if (currentEstIndex_z == (LAG_SIZE_BARO)){
+  if (currentEstIndex_z >= (LAG_SIZE_BARO) || currentEstIndex_z < 0){
     currentEstIndex_z = 0;
   }
   lagIndex_z = currentEstIndex_z - 26;
@@ -291,10 +294,11 @@ void openIMU::CorrectAlt(void){
 
 
 void openIMU::AHRSupdate() {
+  //uint32_t addX,addY,addZ;
   //normalize the sensor readings
+
   magnitude.val =  sqrt(*ax * *ax + *ay * *ay + *az * *az);
   magnitudeDifference.val = fabs(initialAccMagnitude.val +  magnitude.val);
-
   if (magnitudeDifference.val < FEEDBACK_LIMIT ){
 
     recipNorm = 1/magnitude.val;

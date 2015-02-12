@@ -102,9 +102,9 @@ void AssignPointerArray(){
   floatPointerArray[RATE_SP_X] = &rateSetPointX;
   floatPointerArray[RATE_SP_Y] = &rateSetPointY;
   floatPointerArray[RATE_SP_Z] = &rateSetPointZ;
-  floatPointerArray[ADJ_X] = &baroZ;
-  floatPointerArray[ADJ_Y] = &alpha;
-  floatPointerArray[ADJ_Z] = &scaledAccZ;
+  floatPointerArray[ADJ_X] = &imu.rawRoll;
+  floatPointerArray[ADJ_Y] = &imu.rawPitch;
+  floatPointerArray[ADJ_Z] = &imu.yaw;
   floatPointerArray[PITCH_SP] = &pitchSetPoint;
   floatPointerArray[ROLL_SP] = &rollSetPoint;
   floatPointerArray[YAW_SP] = &yawSetPoint;
@@ -468,20 +468,20 @@ void SetDefaultGains(){
   kd_loiter_velocity_y.val = 0.0075;
   fc_loiter_velocity_y.val = 50;
 
-  kp_waypoint_position.val = 0;
+  kp_waypoint_position.val = 2.5;
   ki_waypoint_position.val = 0;
-  kd_waypoint_position.val = 0;
+  kd_waypoint_position.val = 2.5;
   fc_waypoint_position.val = 0;
 
-  kp_waypoint_velocity.val = 0;
-  ki_waypoint_velocity.val = 0;
-  kd_waypoint_velocity.val = 0;
-  fc_waypoint_velocity.val = 0;
+  kp_waypoint_velocity.val = 0.98;
+  ki_waypoint_velocity.val = 0.1;
+  kd_waypoint_velocity.val = 0.2;
+  fc_waypoint_velocity.val = 0.03;
 
-  kp_cross_track.val = 0;
-  ki_cross_track.val = 0;
-  kd_cross_track.val = 0;
-  fc_cross_track.val = 0;
+  kp_cross_track.val = 0.07;
+  ki_cross_track.val = 0.1;
+  kd_cross_track.val = 0.01;
+  fc_cross_track.val = 3.3;
 
   imu.declination.val = 3.66;
   j = 81;

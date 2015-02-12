@@ -839,7 +839,9 @@ void setup(){
   D27Output();
   D28Output();
   D29Output();
-
+  imuDT = 0.01;
+  lpfDT = 0.0025;
+  baroDT = 0.05;
   CheckESCFlag();
 
   DetectRC();
@@ -890,13 +892,13 @@ void setup(){
   MagInit();
   GetInitialQuat();
   CheckTXPositions();
-
+  //GPSStart();
   imu.DECLINATION = ToRad(3.3);
   imu.COS_DEC = cos(imu.DECLINATION);
   imu.SIN_DEC = sin(imu.DECLINATION);
 
   gpsFailSafe = false;
-  imuDT = 0.01;
+  
   imuTimer = micros();
   _400HzTimer = micros();
   generalPurposeTimer = millis();
@@ -950,7 +952,7 @@ void loop(){
     _400HzTask();  
     FlightSM();
     _400HzTask();
-
+    
     if (GPSDetected == true){
       gps.Monitor();
     }
@@ -973,7 +975,7 @@ void loop(){
       imu.CorrectGPS();
 
     }
-
+    
     PollPressure();
     _400HzTask();
     if (newBaro == true){
@@ -981,32 +983,24 @@ void loop(){
       GetAltitude(&pressure.val,&pressureInitial,&baroAlt.val);
       baroDT = (millis() - baroTimer) * 0.001;
       baroTimer = millis();
-      
+
       //baroZ.val  =  baroZ.val * 0.85 + baroAlt.val * 0.15;
 
-      /*if (baroDT <= 0.1){
-        baroRate = (baroZ.val - prevBaro) / baroDT;
 
-      }
-      else{
+      if (baroDT >= 0.1 || baroDT < 0){
         baroDT = 0.1;
-        baroRate = 0;
-      }*/
 
-      if (baroDT >= 0.1){
-        baroDT = 0.1;
-        
 
       }
       alphaBaro = baroDT / (baroDT + RC_CONST_BARO);
       betaBaro = 1 - alphaBaro;
       baroZ.val = baroZ.val * betaBaro + baroAlt.val * alphaBaro;
       baroRate.val = (baroZ.val - prevBaro) / baroDT;
-      
+
       //baroVel.val = baroVel.val * 0.5 + baroRate * 0.5;
       baroVel.val = baroVel.val * betaBaro + baroRate.val * alphaBaro;
-      
-      
+
+
       prevBaro = baroZ.val;
       velZMeas.val = baroVel.val;
       zMeas.val = baroZ.val;
@@ -1081,7 +1075,7 @@ void loop(){
       TuningTransmitter();
 
       tuningTrasnmitOK = false;
-      
+
     }
 
   }  
@@ -1367,6 +1361,7 @@ void LoiterCalculations(){
   tiltAngleX.val *= -1.0;
   LoiterYVelocity.calculate();
 }
+
 
 
 

@@ -804,7 +804,6 @@ void GetAcc(){
   accX.val = tempX;
   accY.val = tempY;
 #endif
-
   shiftedAccX.val  = accX.val - accXOffset;
   shiftedAccY.val  = accY.val - accYOffset;
   shiftedAccZ.val  = accZ.val - accZOffset;
@@ -817,11 +816,11 @@ void GetAcc(){
   /*filtAccX.val = filtAccX.val * 0.9 + scaledAccX.val * 0.1;
    filtAccY.val = filtAccY.val * 0.9 + scaledAccY.val * 0.1;
    filtAccZ.val = filtAccZ.val * 0.9 + scaledAccZ.val * 0.1;*/
-  if (lpfDT > 0.005){
+  if (lpfDT > 0.005 || lpfDT <= 0){
     lpfDT = 0.005;
   }
-  alpha.val = lpfDT / (lpfDT + RC_CONST);
 
+  alpha.val = lpfDT / (lpfDT + RC_CONST);
   beta = 1.0 - alpha.val;
   filtAccX.val = filtAccX.val * beta + scaledAccX.val * alpha.val;
   filtAccY.val = filtAccY.val * beta + scaledAccY.val * alpha.val;
@@ -832,6 +831,7 @@ void GetAcc(){
   accToFilterZ = -1.0 * filtAccZ.val;
 
 }
+
 
 
 
