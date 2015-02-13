@@ -552,7 +552,9 @@ void DSMXParser(){
       bufferIndex = 0;
       for (int i = 0; i < 14; i=i+2){
         channelNumber = (spekBuffer[i] >> 3) & 0x0F;
-        rawRCVal[channelNumber] = ((spekBuffer[i] << 8) | (spekBuffer[i+1])) & 0x07FF;
+        if (channelNumber < 8 && channelNumber >= 0){
+          rawRCVal[channelNumber] = ((spekBuffer[i] << 8) | (spekBuffer[i+1])) & 0x07FF;
+        }
 
       }
     }
@@ -701,6 +703,7 @@ void Spektrum(){
   rcType = DSMX;
   detected = true;
 }
+
 
 
 

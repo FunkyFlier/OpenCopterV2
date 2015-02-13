@@ -102,9 +102,9 @@ void AssignPointerArray(){
   floatPointerArray[RATE_SP_X] = &rateSetPointX;
   floatPointerArray[RATE_SP_Y] = &rateSetPointY;
   floatPointerArray[RATE_SP_Z] = &rateSetPointZ;
-  floatPointerArray[ADJ_X] = &imu.rawRoll;
-  floatPointerArray[ADJ_Y] = &imu.rawPitch;
-  floatPointerArray[ADJ_Z] = &imu.yaw;
+  floatPointerArray[ADJ_X] = &adjustmentX;
+  floatPointerArray[ADJ_Y] = &adjustmentY;
+  floatPointerArray[ADJ_Z] = &adjustmentZ;
   floatPointerArray[PITCH_SP] = &pitchSetPoint;
   floatPointerArray[ROLL_SP] = &rollSetPoint;
   floatPointerArray[YAW_SP] = &yawSetPoint;
@@ -128,10 +128,10 @@ void AssignPointerArray(){
   floatPointerArray[DR_VEL_Y] = &velE;
   floatPointerArray[DR_POS_X] = &baroVel;
   floatPointerArray[DR_POS_Y] = &drPosY;
-  floatPointerArray[MOTOR_CMD_1] = &baroRate;
-  floatPointerArray[MOTOR_CMD_2] = &baroVel;
-  floatPointerArray[MOTOR_CMD_3] = &imu.accelBiasZ;
-  floatPointerArray[MOTOR_CMD_4] = &pressure;
+  floatPointerArray[MOTOR_CMD_1] = &motorCommand1;
+  floatPointerArray[MOTOR_CMD_2] = &motorCommand2;
+  floatPointerArray[MOTOR_CMD_3] = &motorCommand3;
+  floatPointerArray[MOTOR_CMD_4] = &motorCommand4;
   floatPointerArray[PITCH_OFF] = &imu.pitchOffset;
   floatPointerArray[ROLL_OFF] = &imu.rollOffset;
 

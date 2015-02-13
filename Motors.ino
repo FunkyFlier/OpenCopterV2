@@ -349,7 +349,6 @@ void MotorHandler(){
   Motor3WriteMicros(motorCommand3.val);
   Motor4WriteMicros(motorCommand4.val);
 
-
 }
 
 
