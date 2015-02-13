@@ -39,6 +39,7 @@ void LoiterSM(){
     if (RCValue[THRO] < 1050 && motorState == FLIGHT){
       ZLoiterState = LAND;
       motorState = LANDING;
+      //zTarget.val = -100.0;
       velSetPointZ.val = LAND_VEL;
     }
     break;
@@ -71,10 +72,11 @@ void LoiterSM(){
     if (RCValue[THRO] < 1050 && motorState == FLIGHT){
       ZLoiterState = LAND;
       motorState = LANDING;
+      //zTarget.val  = -100.0;
       velSetPointZ.val = LAND_VEL;
       break;
     }
-    
+
 
     if (imu.ZEstUp.val >= CEILING && velSetPointZ.val > 0){
       zTarget.val = CEILING;
@@ -91,9 +93,13 @@ void LoiterSM(){
 
     AltHoldVelocity.calculate();
     break;
-    
+
 
   case LAND:
+    /*AltHoldPosition.calculate();
+    if (velSetPointZ.val < LAND_VEL){
+      velSetPointZ.val = LAND_VEL;
+    }*/
     AltHoldVelocity.calculate();
     if (throttleAdjustment.val > 0){
       throttleAdjustment.val = 0;
@@ -101,6 +107,13 @@ void LoiterSM(){
     if (RCValue[THRO] > 1200 && motorState == LANDING){
       ZLoiterState = LOITERING;
       motorState = FLIGHT;
+      zTarget = imu.ZEstUp;
+      if (zTarget.val <= FLOOR){
+        zTarget.val = FLOOR;
+      } 
+      if (zTarget.val >= CEILING){
+        zTarget.val = CEILING;
+      }
       throttleCheckFlag = true;
 
     }
@@ -189,6 +202,8 @@ void HeadingHold(){
     break;
   }  
 }
+
+
 
 
 

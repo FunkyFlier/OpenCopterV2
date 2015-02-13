@@ -166,7 +166,7 @@ void AssignPointerArray(){
   bytePointerArray[XY_LOIT] = &XYLoiterState;
   bytePointerArray[GPS_FS] = &gpsFailSafe;
   bytePointerArray[DR_FLAG] = &drFlag;
-  bytePointerArray[MOTOR_STATE] = &imu.feedBack;
+  bytePointerArray[MOTOR_STATE] = &motorState;
 
 
 

@@ -161,7 +161,7 @@ void MotorHandler(){
     initialYaw = imu.yaw.val;
     integrate = false;
     HHState = 0;
-
+    throttleAdjustment.val = 0;
     ZLoiterState = LOITERING;
     XYLoiterState = LOITERING;
     if (RCValue[THRO] > 1100){
@@ -207,7 +207,7 @@ void MotorHandler(){
       homeBaseYOffset = imu.YEst.val;
       UpdateOffset();
     }
-
+    throttleAdjustment.val = 0;
     motorCommand1.val = 1000;
     motorCommand2.val = 1000;
     motorCommand3.val = 1000;
@@ -308,7 +308,7 @@ void MotorHandler(){
       }
     }
     throttleCommand = 1550;
-    if ( (1550 + throttleAdjustment.val) < 1250){
+    if ( (1550 + throttleAdjustment.val) < 1200){
       motorCommand1.val = 1000;
       motorCommand2.val = 1000;
       motorCommand3.val = 1000;
