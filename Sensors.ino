@@ -38,8 +38,8 @@ ISR(PCINT0_vect){
  */
 
 void GetInitialQuat(){
-  uint8_t i = 0;
-  float inertialSumX,inertialSumY,inertialSumZ;
+ 
+  float inertialSumZ;
   imu.InitialQuat();
 
 
@@ -290,7 +290,7 @@ void StartUpAHRSRun(){
 
 
 void GPSStart(){
-  uint8_t LEDState;
+  uint8_t LEDState = 0;
   gps.init();
 
 
