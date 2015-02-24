@@ -576,7 +576,6 @@ void WriteCalibrationDataToRom(){
 
 
 void OrderedSet(){
-  uint16_t j;
   switch(typeNum){
   case 0:
     if (cmdNum >= 25 && cmdNum <= 86){

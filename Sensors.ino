@@ -38,8 +38,8 @@ ISR(PCINT0_vect){
  */
 
 void GetInitialQuat(){
-  uint8_t i = 0;
-  float inertialSumX,inertialSumY,inertialSumZ;
+
+  float inertialSumZ;
   imu.InitialQuat();
 
 
@@ -290,7 +290,7 @@ void StartUpAHRSRun(){
 
 
 void GPSStart(){
-  uint8_t LEDState;
+  uint8_t LEDState = 0;
   gps.init();
 
 
@@ -399,7 +399,6 @@ void GetAltitude(float *press,float *pressInit, float *alti){
 void PollPressure(void){
 
 
-
   if (millis() - baroPollTimer >= BARO_CONV_TIME){
     switch(baroState){
     case 0://start temp conv
@@ -413,9 +412,10 @@ void PollPressure(void){
       if (millis() - baroDelayTimer >= 10){
         BaroSSLow();
         SPI.transfer(ADC_READ);
-        D2.buffer[2] = SPI.transfer(0x00);
-        D2.buffer[1] = SPI.transfer(0x00);
-        D2.buffer[0] = SPI.transfer(0x00);
+        D_rcvd.buffer[2] = SPI.transfer(0x00);
+        D_rcvd.buffer[1] = SPI.transfer(0x00);
+        D_rcvd.buffer[0] = SPI.transfer(0x00);
+        D2 = (float)D_rcvd.val;
         BaroSSHigh();
         baroState = 2;
       }
@@ -431,9 +431,10 @@ void PollPressure(void){
       if (millis() - baroDelayTimer >= 10){
         BaroSSLow();
         SPI.transfer(ADC_READ);
-        D1.buffer[2] = SPI.transfer(0x00);
-        D1.buffer[1] = SPI.transfer(0x00);
-        D1.buffer[0] = SPI.transfer(0x00);
+        D_rcvd.buffer[2] = SPI.transfer(0x00);
+        D_rcvd.buffer[1] = SPI.transfer(0x00);
+        D_rcvd.buffer[0] = SPI.transfer(0x00);
+        D1 = (float)D_rcvd.val;
         BaroSSHigh();
         baroState = 0;
         baroPollTimer = millis();
@@ -442,12 +443,12 @@ void PollPressure(void){
       }
       break;
     }
-  }  
+  }
 }
 void GetBaro(){
 
 
-  dT = D2.val-(((uint32_t)C5.val)<<8);
+  dT = D2 -(((uint32_t)C5.val)<<8);
   TEMP = (dT * C6.val)/8388608;
   OFF = C2.val * 65536.0 + (C4.val * dT) / 128;
   SENS = C1.val * 32768.0 + (C3.val * dT) / 256;
@@ -463,7 +464,7 @@ void GetBaro(){
     SENS = SENS - SENS2;
   }
 
-  P = (D1.val*SENS/2097152 - OFF)/32768;
+  P = (D1*SENS/2097152 - OFF)/32768;
   temperature = TEMP + 2000;
   pressure.val = P;
 
