@@ -50,7 +50,7 @@ void GetSwitchPositions(){
 
 void ModeSelect(){
   uint8_t selectState = 0;
-  uint32_t timeDiff;
+  uint32_t timeDiff = 0;
   //wait for mode input
   generalPurposeTimer = millis();
   while(modeSelect == false){//---
