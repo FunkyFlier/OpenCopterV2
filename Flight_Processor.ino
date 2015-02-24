@@ -154,7 +154,7 @@ void LoiterSM(){
     }  
   }
   else{
-    if (flightMode = L2){//check
+    if (flightMode == L2){//check
       controlBearing = initialYaw;
     }
     RotatePitchRoll(&imu.yaw.val,&controlBearing,&pitchSetPointTX.val,&rollSetPointTX.val,&pitchSetPoint.val,&rollSetPoint.val);
