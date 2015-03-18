@@ -61,9 +61,9 @@ public:
   float_u accelBiasX,accelBiasY,accelBiasZ;
   float accelBiasXEF,accelBiasYEF,accelBiasZEF;
   float_u inertialX,inertialY,inertialZ,inertialZGrav;
-  float_u inertialXOffSet,inertialYOffSet,inertialZOffSet;
+  //float_u inertialXOffSet,inertialYOffSet,inertialZOffSet;
   float_u inertialXBiased,inertialYBiased,inertialZBiased;
-  uint8_t feedBack;
+  //uint8_t feedBack;
   float_u xPosError,yPosError,zPosError;
   float_u xVelError,yVelError,zVelError;
   float XEstHist[LAG_SIZE],YEstHist[LAG_SIZE],ZEstHist[LAG_SIZE_BARO];
@@ -78,13 +78,13 @@ public:
   float kpMag;
   float kiMag;
   float FEEDBACK_LIMIT;
-  boolean skipFeedBack;
+  //boolean skipFeedBack;
   //float FEEDBACK_LIMIT;
-  float DECLINATION,COS_DEC,SIN_DEC;
+  float COS_DEC,SIN_DEC;
   float kPosGPS,kVelGPS,kAccGPS,kPosBaro,kVelBaro,kAccBaro;
   float R11,R12,R13,R21,R22,R23,R31,R32,R33;
   float inertialSumX,inertialSumY,inertialSumZ,inertialAvgX,inertialAvgY,inertialAvgZ;
-  float_u lagEstForDebugVel,lagEstForDebugPos;
+  //float_u lagEstForDebugVel,lagEstForDebugPos;
   uint8_t lagAmount;
   //uint8_t magFlag;
   float_u biasedX,biasedY,biasedZ;

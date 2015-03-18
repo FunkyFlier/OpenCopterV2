@@ -88,7 +88,9 @@ static void MapVar (volatile int16_t *x, float *y, float in_min, float in_max, f
   *y = (*x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-
+static void MapVar ( float *x, float *y, int16_t in_min, int16_t in_max, int16_t out_min, int16_t out_max){
+  *y = (*x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 
 #endif 
 

@@ -6,9 +6,10 @@ void _200HzISRConfig(){
 }
 
 ISR(TIMER5_COMPA_vect, ISR_NOBLOCK){
-  if (watchDogStartCount == true){
+ if (watchDogStartCount == true){
     watchDogFailSafeCounter++;
     RCFailSafeCounter++;
+    groundFSCount++;
   }
   ReadSerialStreams();
 

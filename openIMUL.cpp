@@ -51,13 +51,20 @@ float *accZ, float *scAccX, float *scAccY, float *scAccZ, float *magX, float *ma
   ZEst.val = 0;
   ZEstUp.val = 0;
 
-  kPosGPS = 0.20;
-  kVelGPS = 0.36;
-  kAccGPS = 0.00003;
+  kPosGPS = 0.1;
+  kVelGPS = 0.2;
+  kAccGPS = 0.03;
 
-  kPosBaro = 0.09;
-  kVelBaro = 0.09;
-  kAccBaro = 1e-6;
+  kPosBaro = 0.07;
+  kVelBaro = 0.1;
+  kAccBaro = 0.01;
+
+
+  FEEDBACK_LIMIT = 0.1;
+  kpAcc = 2.5;
+  kiAcc = 0.0;
+  kpMag = 2.5;
+  kiMag = 0.0;
   
   currentEstIndex = 0;
   currentEstIndex_z = 0;
@@ -132,7 +139,7 @@ void openIMU::InitialQuat(){
 
   bx = *mx * R11 + *mz * R13;
   by = *mx * R21 + *my * R22 + *mz * R23;
-  radYaw.val = atan2(-1.0 * by, bx) - DECLINATION;
+  radYaw.val = atan2(-1.0 * by, bx) - ToRad(declination.val);
 
   q0.val = cos(radYaw.val/2.0)*cos(radPitch.val/2.0)*cos(radRoll.val/2.0) + sin(radYaw.val/2.0)*sin(radPitch.val/2.0)*sin(radRoll.val/2.0); 
   q1.val = cos(radYaw.val/2.0)*cos(radPitch.val/2.0)*sin(radRoll.val/2.0) - sin(radYaw.val/2.0)*sin(radPitch.val/2.0)*cos(radRoll.val/2.0); 
@@ -170,8 +177,8 @@ void openIMU::InitialQuat(){
   R33 = 2*(q0q0-0.5+q3q3);  
 
   //rotate by declination 
-  COS_DEC = cos(DECLINATION);
-  SIN_DEC = sin(DECLINATION);
+  COS_DEC = cos(declination.val);
+  SIN_DEC = sin(declination.val);
   R11 = R11*COS_DEC - R12*SIN_DEC;
   R12 = R12*COS_DEC + R11*SIN_DEC;
 
@@ -219,7 +226,7 @@ void openIMU::Predict(void){
   YVelHist[currentEstIndex] = velY.val;
 
   //lagEstForDebug.val = XVelHist[lagIndex];
-  
+
   //lagEstForDebugVel.val = XVelHist[lagIndex];
   //lagEstForDebugPos.val = XEstHist[lagIndex];
 
@@ -228,8 +235,8 @@ void openIMU::Predict(void){
   ZVelHist[currentEstIndex_z] = velZ.val;
 
 
-  lagEstForDebugVel.val = -1.0 * ZVelHist[lagIndex_z];
-  lagEstForDebugPos.val = -1.0 * ZEstHist[lagIndex_z];
+  //lagEstForDebugVel.val = -1.0 * ZVelHist[lagIndex_z];
+  //lagEstForDebugPos.val = -1.0 * ZEstHist[lagIndex_z];
 
 
   ZEstUp.val = -1.0 * ZEst.val;
@@ -329,34 +336,34 @@ void openIMU::AHRSupdate() {
     eym = (*mz * wx - *mx * wz);
     ezm = (*mx * wy - *my * wx);
     /*if (magFlag == 1){
-      recipNorm = InvSqrt(*mx * *mx + *my * *my + *mz * *mz);
-      *mx *= recipNorm;
-      *my *= recipNorm;
-      *mz *= recipNorm;
-
-      hx = R11 * *mx + R21 * *my + R31 * *mz;
-      hy = R12 * *mx + R22 * *my + R32 * *mz;
-      hz = R13 * *mx + R23 * *my + R33 * *mz;
-
-
-      bx = sqrt(hx * hx + hy * hy);
-      bz = hz;
-
-
-      wx = R11*bx + R13*bz;
-      wy = R21*bx + R23*bz;
-      wz = R31*bx + R33*bz;
-
-
-      exm = (*my * wz - *mz * wy);
-      eym = (*mz * wx - *mx * wz);
-      ezm = (*mx * wy - *my * wx);
-    }
-    else{
-      exm = 0;
-      eym = 0;
-      ezm = 0;
-    }*/
+     recipNorm = InvSqrt(*mx * *mx + *my * *my + *mz * *mz);
+     *mx *= recipNorm;
+     *my *= recipNorm;
+     *mz *= recipNorm;
+     
+     hx = R11 * *mx + R21 * *my + R31 * *mz;
+     hy = R12 * *mx + R22 * *my + R32 * *mz;
+     hz = R13 * *mx + R23 * *my + R33 * *mz;
+     
+     
+     bx = sqrt(hx * hx + hy * hy);
+     bz = hz;
+     
+     
+     wx = R11*bx + R13*bz;
+     wy = R21*bx + R23*bz;
+     wz = R31*bx + R33*bz;
+     
+     
+     exm = (*my * wz - *mz * wy);
+     eym = (*mz * wx - *mx * wz);
+     ezm = (*mx * wy - *my * wx);
+     }
+     else{
+     exm = 0;
+     eym = 0;
+     ezm = 0;
+     }*/
 
 
     vx = R13;
@@ -430,8 +437,8 @@ void openIMU::GenerateRotationMatrix(void){
   R31 = 2.0*(q1q3+q0q2);
   R32 = 2.0*(q2q3-q0q1);
   R33 = 2.0*(q0q0-0.5+q3q3);  
-  COS_DEC = cos(DECLINATION);
-  SIN_DEC = sin(DECLINATION);
+  COS_DEC = cos(declination.val);
+  SIN_DEC = sin(declination.val);
   //rotate by declination 
   R11 = R11*COS_DEC - R12*SIN_DEC;
   R12 = R12*COS_DEC + R11*SIN_DEC;
@@ -475,6 +482,7 @@ void openIMU::GetYaw(void){
     yaw.val +=360;
   }
 }
+
 
 
 

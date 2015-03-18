@@ -1,28 +1,7 @@
 #include "AUXMATH.h"
 
 
-/*void SetFailSafeFlags(){//remove - for debugging purposes only
- if (RCValue[AUX2] > 1800){
- gpsFailSafe = false;
- drFlag = false;
- imu.XEst.val = rawX.val;
- imu.YEst.val = rawY.val;
- drPosX.val = rawX.val;
- drPosY.val = rawY.val;
- imu.velX.val = 0;
- imu.velY.val = 0;
- drVelX.val = 0;
- drVelY.val = 0;
- 
- imu.ZEst.val = 0;
- 
- imu.velX.val = 0;
- imu.velY.val = 0;
- imu.velZ.val = 0;
- }
- 
- 
- }*/
+
 void GetSwitchPositions(){
   //value from gear switch
   if (RCValue[GEAR] < 1250){
@@ -145,16 +124,81 @@ void ProcessChannels(){
 
   previousFlightMode = flightMode;
 
+  for (uint8_t i = 0; i < 8; i++)  {
+    switch (rcData[i].chan){
+    case THRO:
+      if (rcData[i].reverse == 0){
+        RCValue[THRO] = (rcData[i].rcvd - rcData[i].min) * rcData[i].scale + 1000;
+      }
+      else{
+        RCValue[THRO] = (rcData[i].rcvd - rcData[i].min) * - rcData[i].scale + 2000;
+      }
+      break;
+    case AILE:
+      if (rcData[i].reverse == 0){
+        RCValue[AILE] = (rcData[i].rcvd - rcData[i].mid) * rcData[i].scale + 1500;
+      }
+      else{
+        RCValue[AILE] = (rcData[i].rcvd - rcData[i].mid) * - rcData[i].scale + 1500;
+      }
+      break;
+    case ELEV:
+      if (rcData[i].reverse == 0){
+        RCValue[ELEV] = (rcData[i].rcvd - rcData[i].mid) * rcData[i].scale + 1500;
+      }
+      else{
+        RCValue[ELEV] = (rcData[i].rcvd - rcData[i].mid) * - rcData[i].scale + 1500;
+      }
 
-  RCValue[THRO] = (rawRCVal[THRO] - minRCVal[THRO]) * RCScale[THRO] + 1000;
-  RCValue[GEAR] = (rawRCVal[GEAR] - minRCVal[GEAR]) * RCScale[GEAR] + 1000;
-  RCValue[AUX1] = (rawRCVal[AUX1] - minRCVal[AUX1]) * RCScale[AUX1] + 1000;
-  RCValue[AUX2] = (rawRCVal[AUX2] - minRCVal[AUX2]) * RCScale[AUX2] + 1000;
-  RCValue[AUX3] = (rawRCVal[AUX3] - minRCVal[AUX3]) * RCScale[AUX3] + 1000;
+      break;
+    case RUDD:
+      if (rcData[i].reverse == 0){
+        RCValue[RUDD] = (rcData[i].rcvd - rcData[i].mid) * rcData[i].scale + 1500;
+      }
+      else{
+        RCValue[RUDD] = (rcData[i].rcvd - rcData[i].mid) * - rcData[i].scale + 1500;
+      }
+      break;
+    case GEAR:
+      if (rcData[i].reverse == 0){
+        RCValue[GEAR] = (rcData[i].rcvd - rcData[i].min) * rcData[i].scale + 1000;
+      }
+      else{
+        RCValue[GEAR] = (rcData[i].rcvd - rcData[i].min) * - rcData[i].scale + 2000;
+      }
 
-  RCValue[AILE] = (rawRCVal[AILE] - centerRCVal[AILE]) * RCScale[AILE] + 1500;
-  RCValue[ELEV] = (rawRCVal[ELEV] - centerRCVal[ELEV]) * RCScale[ELEV] + 1500 ;
-  RCValue[RUDD] = (rawRCVal[RUDD] - centerRCVal[RUDD]) * RCScale[RUDD] + 1500 ;
+      break;
+    case AUX1:
+      if (rcData[i].reverse == 0){
+        RCValue[AUX1] = (rcData[i].rcvd - rcData[i].min) * rcData[i].scale + 1000;
+      }
+      else{
+        RCValue[AUX1] = (rcData[i].rcvd - rcData[i].min) * - rcData[i].scale + 2000;
+      }
+
+      break;
+    case AUX2:
+      if (rcData[i].reverse == 0){
+        RCValue[AUX2] = (rcData[i].rcvd - rcData[i].min) * rcData[i].scale + 1000;
+      }
+      else{
+        RCValue[AUX2] = (rcData[i].rcvd - rcData[i].min) * - rcData[i].scale + 2000;
+      }
+
+      break;
+    case AUX3:
+      if (rcData[i].reverse == 0){
+        RCValue[AUX3] = (rcData[i].rcvd - rcData[i].min) * rcData[i].scale + 1000;      
+      }
+      else{
+        RCValue[AUX3] = (rcData[i].rcvd - rcData[i].min) * - rcData[i].scale + 2000;    
+      }
+
+      break;
+
+
+    }
+  }
 
 
   if (txFailSafe == true){
@@ -191,6 +235,7 @@ void ProcessChannels(){
   }
 
   if (RCValue[AUX2] > 1750){
+    gsCTRL = false;
     flightMode = ATT;
     setTrim = true;
     trimComplete = true;
@@ -215,6 +260,7 @@ void ProcessChannels(){
   }
 
   if (RCValue[AUX3] > 1750){
+    gsCTRL = false;
     flightMode = RTB;
     MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
     MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
@@ -240,6 +286,7 @@ void ProcessChannels(){
 
     switch (switchPositions){
     case 0:
+    gsCTRL = false;
       flightMode = L0;
       MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
       MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
@@ -255,6 +302,7 @@ void ProcessChannels(){
       }
       break;
     case 1:
+      gsCTRL = false;
       flightMode = L1;
       MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
       MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
@@ -270,6 +318,7 @@ void ProcessChannels(){
       }
       break;
     case 2:
+      gsCTRL = false;
       flightMode = L2;
       MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
       MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
@@ -289,11 +338,21 @@ void ProcessChannels(){
       }
       break;
 
-    case 4:
-      flightMode = FOLLOW;
-      MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
-      MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
-      MapVar(&RCValue[RUDD],&yawInput,1000,2000,-300,300);
+    case 4://next three modes are GS control
+      flightMode = L0;
+      MapVar(&GSRCValue[AILE],&rollSetPointTX.val,1000,2000,-20,20);
+      MapVar(&GSRCValue[ELEV],&pitchSetPointTX.val,1000,2000,-20,20);
+      MapVar(&GSRCValue[RUDD],&yawInput,1000,2000,-100,100);
+      if (telemFailSafe == true){
+        MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
+        MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
+        MapVar(&RCValue[RUDD],&yawInput,1000,2000,-300,300);
+        gsCTRL = false;
+      }
+      else{
+        gsCTRL = true;
+      }
+
       if (rollSetPointTX.val < 1 && rollSetPointTX.val > -1){
         rollSetPointTX.val = 0;
       }
@@ -303,39 +362,49 @@ void ProcessChannels(){
       if (yawInput < 5 && yawInput > -5){
         yawInput = 0;
       }
-      if (gpsFailSafe == true){
-        flightMode = L0;
-      }
-      if (telemFailSafe == true){
-        flightMode = L0;
-      }
+
+
       break;
     case 5:
-      flightMode = WP;
-      MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
-      MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
-      MapVar(&RCValue[RUDD],&yawInput,1000,2000,-300,300);
-      if (rollSetPointTX.val < 1 && rollSetPointTX.val > -1){
-        rollSetPointTX.val = 0;
+      flightMode = ATT;
+      MapVar(&GSRCValue[ELEV],&pitchSetPoint.val,1000,2000,-20,20);
+      MapVar(&GSRCValue[AILE],&rollSetPoint.val,1000,2000,-20,20);
+      MapVar(&GSRCValue[RUDD],&yawInput,1000,2000,-100,100);
+      if (telemFailSafe == true){
+        MapVar(&RCValue[AILE],&rollSetPoint.val,1000,2000,-60,60);
+        MapVar(&RCValue[ELEV],&pitchSetPoint.val,1000,2000,-60,60);
+        MapVar(&RCValue[RUDD],&yawInput,1000,2000,-300,300);
+        gsCTRL = false;
       }
-      if (pitchSetPointTX.val < 1 && pitchSetPointTX.val > -1){
-        pitchSetPointTX.val = 0;
+      else{
+        gsCTRL = true;
+      }
+      if (rollSetPoint.val < 1 && rollSetPoint.val > -1){
+        rollSetPoint.val = 0;
+      }
+      if (pitchSetPoint.val < 1 && pitchSetPoint.val > -1){
+        pitchSetPoint.val = 0;
       }
       if (yawInput < 5 && yawInput > -5){
         yawInput = 0;
       }
-      if (gpsFailSafe == true){
-        flightMode = L0;
-      }
-      if (telemFailSafe == true){
-        flightMode = RTB;
-      }
+
+
       break;
     case 6:
-      flightMode = L0;
-      MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
-      MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
-      MapVar(&RCValue[RUDD],&yawInput,1000,2000,-300,300);
+      flightMode = RATE;
+      MapVar(&GSRCValue[ELEV],&rateSetPointY.val,1000,2000,-100,100);
+      MapVar(&GSRCValue[AILE],&rateSetPointX.val,1000,2000,-100,100);
+      MapVar(&GSRCValue[RUDD],&rateSetPointZ.val,1000,2000,-100,100);
+      if (telemFailSafe == true){
+        MapVar(&RCValue[ELEV],&rateSetPointY.val,1000,2000,-400,400);
+        MapVar(&RCValue[AILE],&rateSetPointX.val,1000,2000,-400,400);
+        MapVar(&RCValue[RUDD],&rateSetPointZ.val,1000,2000,-400,400);
+        gsCTRL = false;
+      }
+      else{
+        gsCTRL = true;
+      }
       if (rollSetPointTX.val < 1 && rollSetPointTX.val > -1){
         rollSetPointTX.val = 0;
       }
@@ -345,25 +414,43 @@ void ProcessChannels(){
       if (yawInput < 5 && yawInput > -5){
         yawInput = 0;
       }
+
       break;
 
     case 8:
-      //break;
     case 9:
-      //break;
+      gsCTRL = false;
+      flightMode = RATE;
+      setTrim = false;
+      trimComplete = false;
+      MapVar(&RCValue[ELEV],&rateSetPointY.val,1000,2000,-400,400);
+      MapVar(&RCValue[AILE],&rateSetPointX.val,1000,2000,-400,400);
+      MapVar(&RCValue[RUDD],&rateSetPointZ.val,1000,2000,-400,400);
+      if (rateSetPointY.val < 5 && rateSetPointY.val > -5){
+        rateSetPointY.val = 0;
+      }
+      if (rateSetPointX.val < 5 && rateSetPointX.val > -5){
+        rateSetPointX.val = 0;
+      }
+      if (rateSetPointZ.val < 5 && rateSetPointZ.val > -5){
+        rateSetPointZ.val = 0;
+      }
+      break;
     case 10:
-      flightMode = RTB;
-      MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
-      MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
-      MapVar(&RCValue[RUDD],&yawInput,1000,2000,-300,300);
-      if (rollSetPointTX.val < 1 && rollSetPointTX.val > -1){
-        rollSetPointTX.val = 0;
+      gsCTRL = false;
+      setTrim = true;
+      flightMode = RATE;
+      MapVar(&RCValue[ELEV],&rateSetPointY.val,1000,2000,-400,400);
+      MapVar(&RCValue[AILE],&rateSetPointX.val,1000,2000,-400,400);
+      MapVar(&RCValue[RUDD],&rateSetPointZ.val,1000,2000,-400,400);
+      if (rateSetPointY.val < 5 && rateSetPointY.val > -5){
+        rateSetPointY.val = 0;
       }
-      if (pitchSetPointTX.val < 1 && pitchSetPointTX.val > -1){
-        pitchSetPointTX.val = 0;
+      if (rateSetPointX.val < 5 && rateSetPointX.val > -5){
+        rateSetPointX.val = 0;
       }
-      if (yawInput < 5 && yawInput > -5){
-        yawInput = 0;
+      if (rateSetPointZ.val < 5 && rateSetPointZ.val > -5){
+        rateSetPointZ.val = 0;
       }
       break;
     }
@@ -374,6 +461,7 @@ void ProcessChannels(){
     case 0:
     case 1:
     case 2:
+      gsCTRL = false;
       flightMode = L0;
       MapVar(&RCValue[AILE],&rollSetPointTX.val,1000,2000,-60,60);
       MapVar(&RCValue[ELEV],&pitchSetPointTX.val,1000,2000,-60,60);
@@ -391,6 +479,7 @@ void ProcessChannels(){
 
     case 4:
     case 5:
+      gsCTRL = false;
       flightMode = ATT;
       setTrim = false;
       trimComplete = false;
@@ -408,6 +497,7 @@ void ProcessChannels(){
       }
       break;
     case 6:
+      gsCTRL = false;
       flightMode = ATT;
       setTrim = true;
       MapVar(&RCValue[ELEV],&pitchSetPoint.val,1000,2000,-60,60);
@@ -426,6 +516,7 @@ void ProcessChannels(){
 
     case 8:
     case 9:
+      gsCTRL = false;
       flightMode = RATE;
       setTrim = false;
       trimComplete = false;
@@ -443,6 +534,7 @@ void ProcessChannels(){
       }
       break;
     case 10:
+      gsCTRL = false;
       setTrim = true;
       flightMode = RATE;
       MapVar(&RCValue[ELEV],&rateSetPointY.val,1000,2000,-400,400);
@@ -482,15 +574,11 @@ void FeedLine(){
 
 }
 void SBusParser(){
-  while(RCSigPort.available() > 25){
-    RCSigPort.read();
-  }
-  //Serial<<RCSigPort.available()<<"\r\n";
-  while(RCSigPort.available() > 0){
+  while(Serial1.available() > 0){
     if (millis() - frameTime > 8){
       readState = 0;
     }
-    inByte = RCSigPort.read();
+    inByte = Serial1.read();
     frameTime = millis();
     switch (readState){
     case 0:
@@ -510,18 +598,20 @@ void SBusParser(){
         readState = 0;
         if (sBusData[0]==0x0f && sBusData[24] == 0x00){
           newRC = true;
-          rawRCVal[THRO] = (sBusData[1]|sBusData[2]<< 8) & 0x07FF ;
-          rawRCVal[AILE] = (sBusData[2]>>3|sBusData[3]<<5) & 0x07FF;
-          rawRCVal[ELEV] = (sBusData[3]>>6|sBusData[4]<<2|sBusData[5]<<10) & 0x07FF;
-          rawRCVal[RUDD] = (sBusData[5]>>1|sBusData[6]<<7) & 0x07FF;
-          rawRCVal[GEAR] = (sBusData[6]>>4|sBusData[7]<<4) & 0x07FF;
-          rawRCVal[AUX1] = (sBusData[7]>>7|sBusData[8]<<1|sBusData[9]<<9) & 0x07FF;
-          rawRCVal[AUX2] = (sBusData[9]>>2|sBusData[10]<<6) & 0x07FF;
-          rawRCVal[AUX3] = (sBusData[10]>>5|sBusData[11]<<3) & 0x07FF;
+          rcData[0].rcvd = (sBusData[1]|sBusData[2]<< 8) & 0x07FF ;
+          rcData[1].rcvd = (sBusData[2]>>3|sBusData[3]<<5) & 0x07FF;
+          rcData[2].rcvd = (sBusData[3]>>6|sBusData[4]<<2|sBusData[5]<<10) & 0x07FF;
+          rcData[3].rcvd = (sBusData[5]>>1|sBusData[6]<<7) & 0x07FF;
+          rcData[4].rcvd = (sBusData[6]>>4|sBusData[7]<<4) & 0x07FF;
+          rcData[5].rcvd = (sBusData[7]>>7|sBusData[8]<<1|sBusData[9]<<9) & 0x07FF;
+          rcData[6].rcvd = (sBusData[9]>>2|sBusData[10]<<6) & 0x07FF;
+          rcData[7].rcvd = (sBusData[10]>>5|sBusData[11]<<3) & 0x07FF;
+          /*if (sBusData[23] & (1<<2)) {
+           failSafe = true;
+           }*/
           if (sBusData[23] & (1<<3)) {
             failSafe = true;
           }
-
         }
       }
       break;
@@ -532,16 +622,27 @@ void SBusParser(){
 }
 
 void DSMXParser(){
-
-  while (RCSigPort.available() > 0){
-
+  if (Serial.available() > 14){
+    while(Serial.available() > 14){
+      Serial.read();
+    }
+    byteCount = 0;
+    bufferIndex = 0;
+  }
+  while (Serial1.available() > 0){
     if (millis() - frameTime > 8){
       byteCount = 0;
       bufferIndex = 0;
     }
-    inByte = RCSigPort.read();
+    inByte = Serial1.read();
     frameTime = millis();
     byteCount++;
+
+
+    if (bufferIndex > 14){
+      bufferIndex = 0;
+      byteCount = 0;
+    }
     if (byteCount > 2){
       spekBuffer[bufferIndex] = inByte;
       bufferIndex++;
@@ -550,19 +651,17 @@ void DSMXParser(){
       newRC = true;
       byteCount = 0;
       bufferIndex = 0;
-      for (int i = 0; i < 14; i=i+2){
+      for (uint8_t i = 0; i < 14; i=i+2){
         channelNumber = (spekBuffer[i] >> 3) & 0x0F;
-        if (channelNumber < 8 && channelNumber >= 0){
-          rawRCVal[channelNumber] = ((spekBuffer[i] << 8) | (spekBuffer[i+1])) & 0x07FF;
+        if (channelNumber < 8){
+          rcData[channelNumber].rcvd = ((spekBuffer[i] << 8) | (spekBuffer[i+1])) & 0x07FF;
         }
-
       }
     }
   }
 }
 
 void DetectRC(){
-
   readState = 0;
   RC_SSHigh();
   SBus();
@@ -576,6 +675,7 @@ void DetectRC(){
   RC_SSLow();
   Spektrum();
   readState = 0;
+
   if (detected == true){
     FrameCheck();
     readState = 0;
@@ -585,46 +685,83 @@ void DetectRC(){
     rcType = RC;
   }
   readState = 0;
-  if (rcType == RC){
+  if (rcType == RC){//figure out the best way to handle this redundant code 
     DDRK = 0;//PORTK as input
     PORTK |= 0xFF;//turn on pull ups
     PCMSK2 |= 0xFF;//set interrupt mask for all of PORTK
-    PCICR |= 1<<2;//enable the pin change interrupt for K
+    PCICR = 1<<2;//enable the pin change interrupt for K
     delay(100);//wait for a few frames
-  } 
+    if (rcData[0].rcvd == 0 && rcData[1].rcvd == 0 && rcData[2].rcvd == 0 && rcData[3].rcvd == 0 && rcData[4].rcvd == 0 && rcData[5].rcvd == 0 && rcData[6].rcvd == 0){
+      ISRState = PPM;
+      PORTK |= 0x80;
+      PCMSK2 |= 0x80;
+    }
+
+  }
+
 
 
 }
-ISR(PCINT2_vect){
-  currentPinState = PINK;
-  changeMask = currentPinState ^ lastPinState;
-  lastPinState = currentPinState;
-  currentTime = micros();
-  for(uint8_t i=0;i<8;i++){
-    if(changeMask & 1<<i){//has there been a change
-      if(!(currentPinState & 1<<i)){//is the pin in question logic low?
-        timeDifference = currentTime - changeTime[i];//if so then calculate the pulse width
-        if (900 < timeDifference && timeDifference < 2200){//check to see if it is a valid length
-          rawRCVal[i] = timeDifference;
-          if (i == THRO && ((timeDifference ) < 1000)){
-            failSafe = true;
-          }
-          else{
-            newRC = true;
-          }
 
+ISR(PCINT2_vect){
+  switch(ISRState){
+  case STAND:
+    currentPinState = PINK;
+    changeMask = currentPinState ^ lastPinState;
+    lastPinState = currentPinState;
+    currentTime = micros();
+    for(uint8_t i=0;i<8;i++){
+      if(changeMask & 1<<i){//has there been a change
+        if(!(currentPinState & 1<<i)){//is the pin in question logic low?
+          timeDifference = currentTime - changeTime[i];//if so then calculate the pulse width
+          if (900 < timeDifference && timeDifference < 2200){//check to see if it is a valid length
+            rcData[i].rcvd = timeDifference;
+            if (rcData[i].chan == THRO && ((timeDifference ) < ((uint16_t)rcData[i].min - 50) )){  
+              failSafe = true;
+            }
+            else{
+              newRC = true;
+            }
+
+          }
+        }
+        else{//the pin is logic high implying that this is the start of the pulse
+          changeTime[i] = currentTime;
         }
       }
-      else{//the pin is logic high implying that this is the start of the pulse
-        changeTime[i] = currentTime;
+    }
+    break;
+  case PPM:
+    currentTime = micros();
+    if ((PINK & 0x80) == 0x80){//is the PPM pin high
+      previousTime = currentTime;
+    }
+    else{
+      timeDifference = currentTime - previousTime;
+      if(timeDifference > 2500){
+        channelCount = 0;
+      }
+      else{
+        rcData[channelCount].rcvd = timeDifference;
+        if (rcData[channelCount].chan == THRO && ((timeDifference ) < ((uint16_t)rcData[channelCount].min - 50) )){  
+          failSafe = true;
+        }
+        else{
+          newRC = true;
+        }
+        channelCount++;
       }
     }
+    break;
   }
+
 }
 
 void FrameCheck(){//checks if serial RC was incorrectly detected
   newRC = false;
-  generalPurposeTimer = millis();
+  uint32_t frameCheckTimer;
+  frameCheckTimer =  millis();
+  delay(100);
   while (newRC == false){
     if (rcType == RC){
       delay(100);
@@ -632,13 +769,20 @@ void FrameCheck(){//checks if serial RC was incorrectly detected
     if (rcType != RC){
       FeedLine();
     }
-    if (millis() - generalPurposeTimer > 1000){//in case it has incorrectly detected serial RC
+
+    if (millis() - frameCheckTimer > 1000){//in case it has incorrectly detected serial RC
       rcType = RC;
       DDRK = 0;//PORTK as input
       PORTK |= 0xFF;//turn on pull ups
       PCMSK2 |= 0xFF;//set interrupt mask for all of PORTK
-      PCICR |= 1<<2;
+      PCICR = 1<<2;
       delay(100);//wait for a few frames
+      if (rcData[0].rcvd == 0 && rcData[1].rcvd == 0 && rcData[2].rcvd == 0 && rcData[3].rcvd == 0 && rcData[4].rcvd == 0 && rcData[5].rcvd == 0 && rcData[6].rcvd == 0){
+        ISRState = PPM;
+        PORTK |= 0x80;
+        PCMSK2 |= 0x80;
+      }
+
       generalPurposeTimer = millis();
     }
   } 
@@ -647,22 +791,20 @@ void FrameCheck(){//checks if serial RC was incorrectly detected
 }
 
 
-
-
 void SBus(){
 
-  RCSigPort.begin(100000);
+  Serial1.begin(100000);
   generalPurposeTimer = millis();
 
-  while (RCSigPort.available() == 0){
+  while (Serial1.available() == 0){
     if (millis() - generalPurposeTimer > 1000){
       return;
     }
   }
 
   delay(20);
-  while(RCSigPort.available() > 0){
-    inByte = RCSigPort.read();
+  while(Serial1.available() > 0){
+    inByte = Serial1.read();
     switch (readState){
     case 0:
       if (inByte == 0x0f){
@@ -688,21 +830,29 @@ void SBus(){
   frameTime = millis();
 }
 void Spektrum(){
-  RCSigPort.begin(115200);
+  Serial1.begin(115200);
   generalPurposeTimer = millis();
-  while (RCSigPort.available() == 0){
+  while (Serial1.available() == 0){
     if (millis() - generalPurposeTimer > 1000){
       return;
     }
   }  
   delay(5);
-  while(RCSigPort.available() > 0){
-    RCSigPort.read();
+  while(Serial1.available() > 0){
+    Serial1.read();
   }
   frameTime = millis();
   rcType = DSMX;
   detected = true;
 }
+
+
+
+
+
+
+
+
 
 
 

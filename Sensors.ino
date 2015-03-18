@@ -1,41 +1,3 @@
-/*
-void SonarInit(){
- 
- DDRB |= (1<<PB5);
- TCCR1A = (1<<WGM11)|(1<<COM1A1);
- TCCR1B = (1<<WGM13)|(1<<WGM12)|(1<<CS11)|(1<<CS10);
- ICR1 = PERIOD_TRIG;  
- OCR1A = 2; 
- 
- DDRB &= ~(1<<PB6);
- PORTK |= (1<<PB6);
- PCMSK0 |= 1<<PCINT6;
- PCICR |= 1<<0;
- 
- }*/
-
-
-/*
-ISR(PCINT0_vect){
- 
- if (((PINB & 1<<PB6)>>PB6) == 1){
- start = micros();
- 
- }
- else{
- width = (micros() - start);
- if (width <= 17400){
- newPing = true;
- baroCorrect = false;
- }
- else{
- baroCorrect = true;
- }
- 
- }
- 
- }
- */
 
 void GetInitialQuat(){
 
@@ -202,7 +164,7 @@ void SendCalData(){
     txSum += 2;
     txDoubleSum += txSum;
 
-    temp.val = rawRCVal[THRO];
+    temp.val = rcData[0].rcvd;
     radioPrint->write(temp.buffer[0]);
     txSum += temp.buffer[0];
     txDoubleSum += txSum;
@@ -210,7 +172,7 @@ void SendCalData(){
     txSum += temp.buffer[1];
     txDoubleSum += txSum;
 
-    temp.val = rawRCVal[AILE];
+    temp.val = rcData[1].rcvd;
     radioPrint->write(temp.buffer[0]);
     txSum += temp.buffer[0];
     txDoubleSum += txSum;
@@ -218,7 +180,7 @@ void SendCalData(){
     txSum += temp.buffer[1];
     txDoubleSum += txSum;
 
-    temp.val = rawRCVal[ELEV];
+    temp.val = rcData[2].rcvd;
     radioPrint->write(temp.buffer[0]);
     txSum += temp.buffer[0];
     txDoubleSum += txSum;
@@ -226,7 +188,7 @@ void SendCalData(){
     txSum += temp.buffer[1];
     txDoubleSum += txSum;
 
-    temp.val = rawRCVal[RUDD];
+    temp.val = rcData[3].rcvd;
     radioPrint->write(temp.buffer[0]);
     txSum += temp.buffer[0];
     txDoubleSum += txSum;
@@ -234,7 +196,7 @@ void SendCalData(){
     txSum += temp.buffer[1];
     txDoubleSum += txSum;
 
-    temp.val = rawRCVal[GEAR];
+    temp.val = rcData[4].rcvd;
     radioPrint->write(temp.buffer[0]);
     txSum += temp.buffer[0];
     txDoubleSum += txSum;
@@ -242,7 +204,7 @@ void SendCalData(){
     txSum += temp.buffer[1];
     txDoubleSum += txSum;
 
-    temp.val = rawRCVal[AUX1];
+    temp.val = rcData[5].rcvd;
     radioPrint->write(temp.buffer[0]);
     txSum += temp.buffer[0];
     txDoubleSum += txSum;
@@ -250,7 +212,7 @@ void SendCalData(){
     txSum += temp.buffer[1];
     txDoubleSum += txSum;
 
-    temp.val = rawRCVal[AUX2];
+    temp.val = rcData[6].rcvd;
     radioPrint->write(temp.buffer[0]);
     txSum += temp.buffer[0];
     txDoubleSum += txSum;
@@ -258,7 +220,7 @@ void SendCalData(){
     txSum += temp.buffer[1];
     txDoubleSum += txSum;
 
-    temp.val = rawRCVal[AUX3];
+    temp.val = rcData[7].rcvd;
     radioPrint->write(temp.buffer[0]);
     txSum += temp.buffer[0];
     txDoubleSum += txSum;
@@ -271,22 +233,6 @@ void SendCalData(){
     break;
   }
 }
-/*
-void StartUpAHRSRun(){
- if ( micros() - imuTimer >= 13333){  
- imuDT = (micros() - imuTimer) * 0.000001;
- imuTimer = micros();
- GetAcc();
- GetMag();
- GetGyro();
- PollPressure();
- if (newBaro == true){
- newBaro = false;
- } 
- imu.AHRSupdate();
- } 
- }*/
-
 
 
 void GPSStart(){
@@ -385,6 +331,8 @@ void GPSStart(){
     }
     homeBase.lat.val = gps.data.vars.lat;
     homeBase.lon.val = gps.data.vars.lon;
+    homeLat.val = (gps.data.vars.lat) * 0.0000001;
+    homeLon.val = (gps.data.vars.lon) * 0.0000001;
   }  
 
 
@@ -527,7 +475,7 @@ void BaroInit(void){
   pressureInitial = baroSum / 10;   
 
 
-  initialTemp.val = temperature;
+
 
   //use the line below for altitdue above sea level
   //pressureInitial = 101325;
@@ -600,12 +548,12 @@ void AccInit(){
   GetAcc();
 
 
-  shiftedAccX.val  = accX.val - accXOffset;
-  shiftedAccY.val  = accY.val - accYOffset;
-  shiftedAccZ.val  = accZ.val - accZOffset;
-  scaledAccX.val = shiftedAccX.val * accXScale;
-  scaledAccY.val = shiftedAccY.val * accYScale;
-  scaledAccZ.val = shiftedAccZ.val * accZScale;
+  shiftedAccX  = accX.val - accXOffset;
+  shiftedAccY  = accY.val - accYOffset;
+  shiftedAccZ  = accZ.val - accZOffset;
+  scaledAccX.val = shiftedAccX * accXScale;
+  scaledAccY.val = shiftedAccY * accYScale;
+  scaledAccZ.val = shiftedAccZ * accZScale;
 
 
   filtAccX.val = scaledAccX.val;
@@ -805,18 +753,16 @@ void GetAcc(){
   accX.val = tempX;
   accY.val = tempY;
 #endif
-  shiftedAccX.val  = accX.val - accXOffset;
-  shiftedAccY.val  = accY.val - accYOffset;
-  shiftedAccZ.val  = accZ.val - accZOffset;
-  scaledAccX.val = shiftedAccX.val * accXScale;
-  scaledAccY.val = shiftedAccY.val * accYScale;
-  scaledAccZ.val = shiftedAccZ.val * accZScale;
+  shiftedAccX  = accX.val - accXOffset;
+  shiftedAccY  = accY.val - accYOffset;
+  shiftedAccZ  = accZ.val - accZOffset;
+  scaledAccX.val = shiftedAccX * accXScale;
+  scaledAccY.val = shiftedAccY * accYScale;
+  scaledAccZ.val = shiftedAccZ * accZScale;
 
 
 
-  /*filtAccX.val = filtAccX.val * 0.9 + scaledAccX.val * 0.1;
-   filtAccY.val = filtAccY.val * 0.9 + scaledAccY.val * 0.1;
-   filtAccZ.val = filtAccZ.val * 0.9 + scaledAccZ.val * 0.1;*/
+
   if (lpfDT > 0.005 || lpfDT <= 0){
     lpfDT = 0.005;
   }

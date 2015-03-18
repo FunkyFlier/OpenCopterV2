@@ -29,14 +29,21 @@ void Arm(){
 }
 
 void LoiterSM(){
+   
+  
+  if (gsCTRL == false){
+    loitThro = RCValue[THRO];
+  }else{
+    loitThro = GSRCValue[THRO];
+  }
   switch(ZLoiterState){
   case LOITERING:
     AltHoldPosition.calculate();
     AltHoldVelocity.calculate();
-    if (abs(RCValue[THRO] - 1550) > 200 && throttleCheckFlag == false){
+    if (abs(loitThro - 1550) > 200 && throttleCheckFlag == false){
       ZLoiterState = RCINPUT;
     }
-    if (RCValue[THRO] < 1050 && motorState == FLIGHT){
+    if (loitThro < 1050 && motorState == FLIGHT){
       ZLoiterState = LAND;
       motorState = LANDING;
       //zTarget.val = -100.0;
@@ -48,7 +55,7 @@ void LoiterSM(){
       ZLoiterState = LOITERING;
       break;
     }
-    rcDifference = RCValue[THRO] - 1550;
+    rcDifference = loitThro - 1550;
     if (abs(rcDifference) < 200){
       ZLoiterState = LOITERING;
       zTarget = imu.ZEstUp;
@@ -69,7 +76,7 @@ void LoiterSM(){
     if (velSetPointZ.val < MIN_Z_RATE){
       velSetPointZ.val = MIN_Z_RATE;
     }
-    if (RCValue[THRO] < 1050 && motorState == FLIGHT){
+    if (loitThro < 1050 && motorState == FLIGHT){
       ZLoiterState = LAND;
       motorState = LANDING;
       //zTarget.val  = -100.0;
@@ -101,10 +108,8 @@ void LoiterSM(){
       velSetPointZ.val = LAND_VEL;
     }*/
     AltHoldVelocity.calculate();
-    if (throttleAdjustment.val > 0){
-      throttleAdjustment.val = 0;
-    }
-    if (RCValue[THRO] > 1200 && motorState == LANDING){
+    
+    if (loitThro > 1200 && motorState == LANDING){
       ZLoiterState = LOITERING;
       motorState = FLIGHT;
       zTarget = imu.ZEstUp;
@@ -133,7 +138,7 @@ void LoiterSM(){
       }
       break;
     case RCINPUT:
-      RotatePitchRoll(&imu.yaw.val,&controlBearing,&pitchSetPointTX.val,&rollSetPointTX.val,&pitchSetPoint.val,&rollSetPoint.val);
+      RotatePitchRoll(&imu.yaw.val,&controlBearing.val,&pitchSetPointTX.val,&rollSetPointTX.val,&pitchSetPoint.val,&rollSetPoint.val);
       if (fabs(rollSetPointTX.val) < 0.5 && fabs(pitchSetPointTX.val) < 0.5){
         XYLoiterState = WAIT;
         waitTimer = millis();
@@ -155,9 +160,9 @@ void LoiterSM(){
   }
   else{
     if (flightMode == L2){//check
-      controlBearing = initialYaw;
+      controlBearing.val = initialYaw.val;
     }
-    RotatePitchRoll(&imu.yaw.val,&controlBearing,&pitchSetPointTX.val,&rollSetPointTX.val,&pitchSetPoint.val,&rollSetPoint.val);
+    RotatePitchRoll(&imu.yaw.val,&controlBearing.val,&pitchSetPointTX.val,&rollSetPointTX.val,&pitchSetPoint.val,&rollSetPoint.val);
   }
 }
 
